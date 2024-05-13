@@ -1,3 +1,4 @@
+import { UsePublic } from '@app/common';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -7,8 +8,11 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UsePublic()
   @Get()
-  getHello(): string {
-    return this.usersService.getHello();
+  public get() {
+    return {
+      userId: 'userId',
+    };
   }
 }

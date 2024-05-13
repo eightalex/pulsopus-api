@@ -1,3 +1,4 @@
+import { InvalidCredentialsException } from '@app/common';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -13,23 +14,32 @@ export class AuthService {
   ) {}
 
   public async signIn(dto: AuthLoginRequestDto): Promise<AuthResponseDto> {
-    const user = await this.usersService.getById('id');
-    const payload = { sub: 'user.id', username: 'user.username' };
-    const { access } = this.config.get('secret');
-    const token = await this.jwt.signAsync(payload, {
-      secret: access.key,
-      expiresIn: access.expire,
-    });
-    return new AuthResponseDto({
-      accessToken: token,
-      refreshToken: 'refreshToken',
-    });
+    throw new InvalidCredentialsException();
+    // const user = await this.usersService.getById('id');
+    // const payload = { sub: 'user.id', username: 'user.username' };
+    // const { access } = this.config.get('secret');
+    // const token = await this.jwt.signAsync(payload, {
+    //   secret: access.key,
+    //   expiresIn: access.expire,
+    // });
+    // return new AuthResponseDto({
+    //   accessToken: token,
+    //   refreshToken: 'refreshToken',
+    // });
   }
 
   public async tokenLogin(token: string): Promise<AuthResponseDto> {
     console.log('token', token);
+
+    const payload = { sub: 'user.id', username: 'user.username' };
+    const { access } = this.config.get('secret');
+    const accessToken = await this.jwt.signAsync(payload, {
+      secret: access.key,
+      expiresIn: access.expire,
+    });
+
     return new AuthResponseDto({
-      accessToken: token,
+      accessToken,
       refreshToken: 'refreshToken',
     });
     // const user = await this.usersService.getById('id');
