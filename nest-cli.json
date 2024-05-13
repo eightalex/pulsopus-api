@@ -5,7 +5,9 @@
   "root": "apps/api",
   "sourceRoot": "apps/api/src",
   "compilerOptions": {
-    "plugins": ["@nestjs/swagger"]
+    "plugins": [
+      "@nestjs/swagger"
+    ]
   },
   "projects": {
     "common": {
@@ -42,6 +44,24 @@
       "sourceRoot": "apps/users/src",
       "compilerOptions": {
         "tsConfigPath": "apps/users/tsconfig.app.json"
+      }
+    },
+    "dto": {
+      "type": "library",
+      "root": "libs/dto",
+      "entryFile": "index",
+      "sourceRoot": "libs/dto/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/dto/tsconfig.lib.json"
+      }
+    },
+    "employees": {
+      "type": "application",
+      "root": "apps/employees",
+      "entryFile": "main",
+      "sourceRoot": "apps/employees/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/employees/tsconfig.app.json"
       }
     }
   }

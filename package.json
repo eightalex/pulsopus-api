@@ -5,6 +5,9 @@
   "description": "pulsopus api service monolith",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": "v20.12.2"
+  },
   "scripts": {
     "dev": "yarn start:dev",
     "build": "nest build",
@@ -36,6 +39,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.6",
+    "fast-csv": "^5.0.1",
     "nestjs-pino": "^4.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
@@ -89,7 +93,8 @@
       "<rootDir>/apps/"
     ],
     "moduleNameMapper": {
-      "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1"
+      "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
+      "^@app/dto(|/.*)$": "<rootDir>/libs/dto/src/$1"
     }
   }
 }

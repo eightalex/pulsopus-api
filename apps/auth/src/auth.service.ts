@@ -1,8 +1,8 @@
 import { InvalidCredentialsException } from '@app/common';
+import { AuthLoginRequestDto, AuthResponseDto } from '@app/dto';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { AuthLoginRequestDto, AuthResponseDto } from '@/auth/src/dto';
 import { UsersService } from '@/users/src/users.service';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class AuthService {
   }
 
   public async tokenLogin(token: string): Promise<AuthResponseDto> {
-    console.log('token', token);
+    throw new InvalidCredentialsException();
 
     const payload = { sub: 'user.id', username: 'user.username' };
     const { access } = this.config.get('secret');

@@ -11,11 +11,15 @@ class EnvironmentVariables {
   PORT_API: number;
   @IsNumber()
   PORT_AUTH: number;
+  @IsNumber()
+  PORT_EMPLOYYES: number;
 
   @IsString()
   HOST_API: string;
   @IsString()
   HOST_AUTH: string;
+  @IsString()
+  HOST_EMPLOYYES: string;
 }
 
 export const validateConfig = (config: Record<string, unknown>) => {
@@ -41,11 +45,13 @@ export default (): Record<string, unknown> => ({
     api: parseInt(process.env.PORT_API, 10) || 8080,
     auth: parseInt(process.env.PORT_AUTH, 10) || 8081,
     users: parseInt(process.env.PORT_USERS, 10) || 8085,
+    employees: parseInt(process.env.PORT_EMPLOYYES, 10) || 8086,
   },
   host: {
     api: process.env.HOST_API || '0.0.0.0',
     auth: process.env.HOST_AUTH || 'auth',
     users: process.env.HOST_AUTH || 'users',
+    employees: process.env.HOST_EMPLOYYES || 'employees',
   },
   database: {
     host: process.env.DATABASE_HOST,
