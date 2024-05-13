@@ -22,16 +22,15 @@ const rowParser = (row) => {
   }, {} as any);
 };
 
+export interface IReaded
+  extends Record<string, string | Record<string, string>> {}
+
 @Injectable()
 export class EmployeesService {
-  private readed: Record<string, unknown>[];
-  constructor() {
-    this.readed = this.readDataFile();
-  }
-
-  private async readDataFile(): Promise<Record<string, unknown>[]> {
+  private readed?: IReaded[];
+  private async readDataFile(): Promise<IReaded[]> {
     return await new Promise((resolve) => {
-      const result = [];
+      const result: IReaded[] = [];
       createReadStream('static/data.csv')
         .pipe(csv.parse({ headers: true }))
         .on('error', (error) => console.error(error))
@@ -42,7 +41,13 @@ export class EmployeesService {
     });
   }
 
-  async readFile() {
+  private async getReadedFile(): Promise<IReaded[]> {
+    if (this.readed) return this.readed;
+    this.readed = await this.readDataFile();
     return this.readed;
+  }
+
+  public async readFile() {
+    return this.getReadedFile();
   }
 }

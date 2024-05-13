@@ -1,6 +1,6 @@
 import { UsePublic } from '@app/common';
 import { Controller, Get } from '@nestjs/common';
-import { EmployeesService } from './employees.service';
+import { EmployeesService, IReaded } from './employees.service';
 
 @Controller()
 export class EmployeesController {
@@ -8,7 +8,7 @@ export class EmployeesController {
 
   @UsePublic()
   @Get('file')
-  public getFile() {
+  public getFile(): Promise<IReaded[]> {
     return this.employeesService.readFile();
   }
 }
