@@ -9,6 +9,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerCustomOptions } from '@nestjs/swagger/dist/interfaces/swagger-custom-options.interface';
 import { ApiModule } from './api.module';
 
 async function bootstrap() {
@@ -43,6 +45,17 @@ async function bootstrap() {
     res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
     next();
   });
+
+  const documentConfig = new DocumentBuilder()
+    .setTitle('Pulsopus API')
+    .setDescription('The Pulsopus API description')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, documentConfig);
+  const swaggerOptions: SwaggerCustomOptions = {
+    customSiteTitle: 'pulsopus | swagger',
+  };
+  SwaggerModule.setup('/api', app, document, swaggerOptions);
 
   await app.listen(config.get('port.api'), async () => {
     logger.log(`Application is running on: ${await app.getUrl()}`);

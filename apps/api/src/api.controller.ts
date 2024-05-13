@@ -1,3 +1,4 @@
+import { UsePublic } from '@app/common';
 import { Controller, Get } from '@nestjs/common';
 import { ApiService } from './api.service';
 
@@ -5,8 +6,9 @@ import { ApiService } from './api.service';
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
+  @UsePublic()
   @Get()
-  getHello(): string {
-    return this.apiService.getHello();
+  public index(): string {
+    return this.apiService.getIndex();
   }
 }

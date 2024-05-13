@@ -7,7 +7,6 @@ ADD package.json package.json
 RUN yarn
 ADD . .
 RUN yarn run build
-
 #CMD ["node", "./dist/main.js"]
 #CMD [ "node", "dist/apps/reservations/main" ]
 

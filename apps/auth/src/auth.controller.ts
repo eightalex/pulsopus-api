@@ -8,13 +8,28 @@ import {
   Post,
   Res,
 } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthLoginRequestDto, AuthResponseDto } from './dto/';
 import { AuthService } from './auth.service';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // swagger
+  @ApiOperation({ summary: 'login by user credential.' })
+  @ApiBody({ type: AuthLoginRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'login user OK',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Body user credential error validation.',
+  })
+  // endpoint
   @UsePublic()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -30,6 +45,14 @@ export class AuthController {
     return data;
   }
 
+  // swagger
+  @ApiOperation({ summary: 'login by user token.' })
+  @ApiResponse({
+    status: 200,
+    description: 'login user OK',
+    type: AuthResponseDto,
+  })
+  // endpoint
   @UsePublic()
   @Post('token')
   @HttpCode(HttpStatus.OK)

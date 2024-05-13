@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ApiService {
-  getHello(): string {
-    return 'Hello World!';
+  public getIndex(): string {
+    return 'api index page';
   }
 }

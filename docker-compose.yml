@@ -1,105 +1,8 @@
 version: '3.7'
 services:
-#  redis:
-#    container_name: dao-redis
-#    image: redis:latest
-#    restart: always
-#    volumes:
-#      - $PWD/redis-data:/var/lib/redis
-#      - $PWD/redis-conf:/usr/local/etc/redis
-#    ports:
-#      - '6379:6379'
-#    networks:
-#      - backend
-#
-#  redis-commander:
-#      container_name: dao-redis-commander
-#      image: rediscommander/redis-commander:latest
-#      environment:
-##        - REDIS_HOSTS=${REDIS_HOST}:${REDIS_PORT}
-#        - REDIS_HOSTS=local:redis:6379
-#      ports:
-#        - '8071:8081'
-#      depends_on:
-#        - redis
-#      networks:
-#        - backend
-#
-#  app-dao:
-#    build: ./
-#    container_name: dao-app
-#    command: ["npm", "run", "app:prod"]
-#    restart: always
-#    env_file:
-#      - ./.env
-#    ports:
-#      - '8082:8081'
-#    expose:
-#      - 8082
-#      - 8442
-#    networks:
-#      - backend
-#    depends_on:
-#      - redis
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "500m"
-#    volumes:
-#      - $PWD/files:/files
-#
-#  service-dao:
-#    build: ./
-#    container_name: dao-service
-#    command: [ "npm", "run", "service:prod" ]
-#    restart: always
-#    ports:
-#      - '8083:8083'
-#    env_file:
-#      - ./.env
-#    networks:
-#      - backend
-#    depends_on:
-#      - redis
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "500m"
-#    volumes:
-#      - $PWD/files:/files
-#
-#  service-wss:
-#    build: ./
-#    container_name: dao-socket
-#    command: [ "npm", "run", "wss:prod" ]
-#    restart: always
-#    ports:
-#      - ${SOCKET_PORT}:${SOCKET_PORT}
-#    expose:
-#      - ${SOCKET_PORT}
-#    env_file:
-#      - ./.env
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "500m"
-#
-#  service-alarm:
-#    build: ./
-#    container_name: dao-alarm
-#    command: [ "npm", "run", "alarm:prod" ]
-#    restart: always
-#    env_file:
-#      - ./.env
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "500m"
-
   api:
     build: ./
     container_name: api
-#    command: [ "npm", "run", "p2p:prod" ]
     command: [ "yarn", "run", "start" ]
     restart: always
     ports:
@@ -107,6 +10,18 @@ services:
     env_file:
       - ./.env
     networks:
+      - api
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    restart: always
+#    command: ["nginx", "-g", "daemon off;"]
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    depends_on:
       - api
 
 networks:

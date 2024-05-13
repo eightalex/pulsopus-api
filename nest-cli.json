@@ -4,6 +4,9 @@
   "monorepo": true,
   "root": "apps/api",
   "sourceRoot": "apps/api/src",
+  "compilerOptions": {
+    "plugins": ["@nestjs/swagger"]
+  },
   "projects": {
     "common": {
       "type": "library",
