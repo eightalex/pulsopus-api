@@ -24,10 +24,10 @@ export class TokenResponseInterceptor<T>
 
     const pipeMap = async (data) => {
       try {
-        if (!requestToken) return data;
-        const user = await this.authService.tokenLogin(requestToken);
-        if (!user) return data;
-        return { ...data, user };
+        if (!data || !requestToken || data?.accessToken) return data;
+        const token = await this.authService.rebuildToken(requestToken);
+        if (!token) return data;
+        return { ...data, token };
       } catch (_) {
         return data;
       }

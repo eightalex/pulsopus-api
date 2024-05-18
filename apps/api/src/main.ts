@@ -3,12 +3,13 @@ import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import { HttpExceptionFilter, TokenResponseInterceptor } from '@app/common';
 import {
+  ClassSerializerInterceptor,
   Logger as NestLogger,
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { SwaggerCustomOptions } from '@nestjs/swagger/dist/interfaces/swagger-custom-options.interface';
@@ -61,6 +62,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new TokenResponseInterceptor(authService));
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   await app.listen(config.get('port.api'), async () => {
     logger.log(`Application is running on: ${await app.getUrl()}`);

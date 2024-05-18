@@ -40,13 +40,16 @@
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.6",
     "fast-csv": "^5.0.1",
+    "lodash": "^4.17.21",
+    "moment": "^2.30.1",
     "nestjs-pino": "^4.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pino-http": "^10.1.0",
     "pino-pretty": "^11.0.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@nestjs/schematics": "^10.0.0",
@@ -94,7 +97,8 @@
     ],
     "moduleNameMapper": {
       "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
-      "^@app/dto(|/.*)$": "<rootDir>/libs/dto/src/$1"
+      "^@app/dto(|/.*)$": "<rootDir>/libs/dto/src/$1",
+      "^@app/entities(|/.*)$": "<rootDir>/libs/entities/src/$1"
     }
   }
 }

@@ -19,6 +19,24 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
+    "dto": {
+      "type": "library",
+      "root": "libs/dto",
+      "entryFile": "index",
+      "sourceRoot": "libs/dto/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/dto/tsconfig.lib.json"
+      }
+    },
+    "entities": {
+      "type": "library",
+      "root": "libs/entities",
+      "entryFile": "index",
+      "sourceRoot": "libs/entities/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/entities/tsconfig.lib.json"
+      }
+    },
     "api": {
       "type": "application",
       "root": "apps/api",
@@ -46,22 +64,13 @@
         "tsConfigPath": "apps/users/tsconfig.app.json"
       }
     },
-    "dto": {
-      "type": "library",
-      "root": "libs/dto",
-      "entryFile": "index",
-      "sourceRoot": "libs/dto/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/dto/tsconfig.lib.json"
-      }
-    },
-    "employees": {
+    "departments": {
       "type": "application",
-      "root": "apps/employees",
+      "root": "apps/departments",
       "entryFile": "main",
-      "sourceRoot": "apps/employees/src",
+      "sourceRoot": "apps/departments/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/employees/tsconfig.app.json"
+        "tsConfigPath": "apps/departments/tsconfig.app.json"
       }
     }
   }

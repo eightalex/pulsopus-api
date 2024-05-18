@@ -1,33 +1,21 @@
 import { createReadStream } from 'fs';
 import * as csv from '@fast-csv/parse';
-import { Injectable } from '@nestjs/common';
-
-const rowParser = (row) => {
-  return Object.entries(row).reduce((acc, [k, v]) => {
-    const keys = ['name', 'position', 'department'];
-    if (keys.includes(k.trim().toLowerCase())) {
-      acc[k.trim().toLowerCase()] = (v as string).trim();
-      return acc;
-    }
-    if (k === 'Department') {
-      acc[k] = v;
-      return acc;
-    }
-    const d = acc.data || {};
-    acc.data = {
-      ...d,
-      [k]: v,
-    };
-    return acc;
-  }, {} as any);
-};
+import { rowParser } from './mock';
 
 export interface IReaded
-  extends Record<string, string | Record<string, string>> {}
+  extends Record<string, string | Record<string, string>> {
+  name: string;
+  position: string;
+  department: string;
+  data: Record<string, string>;
+}
 
-@Injectable()
-export class EmployeesService {
+export class CsvRead {
   private readed?: IReaded[];
+  constructor() {
+    this.getReadedFile();
+  }
+
   private async readDataFile(): Promise<IReaded[]> {
     return await new Promise((resolve) => {
       const result: IReaded[] = [];

@@ -1,20 +1,28 @@
 import { Response } from 'express';
 import { UsePublic, UserAuthorization } from '@app/common';
-import { AuthLoginRequestDto, AuthResponseDto } from '@app/dto';
+import {
+  AuthLoginRequestDto,
+  AuthLoginSendRequestDto,
+  AuthResponseDto,
+} from '@app/dto';
+import { USER_GROUP } from '@app/entities';
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
-  Inject,
+  Param,
   Post,
   Res,
+  SerializeOptions,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 
 @ApiTags('auth')
 @Controller('auth')
+@SerializeOptions({ groups: [USER_GROUP.AUTH] })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -70,19 +78,50 @@ export class AuthController {
     return data;
   }
 
+  // swagger
+  @ApiOperation({ summary: 'logout by user token.' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'logout user OK',
+  })
+  // endpoint
   @UsePublic()
   @Post('logout')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   public async logout(
     @UserAuthorization() token: string,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
-    const data = await this.authService.tokenLogin(token);
+  ): Promise<void> {
+    await this.authService.logout(token);
     res.setHeader('Authorization', '');
     res.cookie('refresh', '', {
       httpOnly: true,
       maxAge: 0,
     });
-    return data;
+  }
+
+  // swagger
+  @ApiOperation({
+    summary: 'request access from administrator with user credential.',
+  })
+  @ApiBody({ type: AuthLoginSendRequestDto })
+  @ApiResponse({ status: 204, description: 'request sent' })
+  // endpoint
+  @UsePublic()
+  @Post('request-access')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async requestAccessAdmin(
+    @Body() dto: AuthLoginSendRequestDto,
+  ): Promise<void> {
+    await this.authService.requestAccess(dto);
+  }
+
+  @UsePublic()
+  @Get('test/:login')
+  public testEmail(@Param() param: { login: string }) {
+    return this.authService.signIn({
+      login: param.login,
+      password: 'password',
+    });
   }
 }
