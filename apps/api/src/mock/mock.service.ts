@@ -129,6 +129,10 @@ export class MockService {
   }
 
   public async reset() {
+    this.usersList = undefined;
+    this.departmentList = undefined;
+    this.users = undefined;
+    this.department = undefined;
     await this.init();
   }
 }
