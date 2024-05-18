@@ -1,4 +1,3 @@
-import { UsersFilterRequestDto } from '@app/dto';
 import { User } from '@app/entities';
 import {
   BadRequestException,
@@ -11,7 +10,6 @@ import { MockService } from '@/api/src/mock/mock.service';
 @Injectable()
 export class UsersService {
   public readonly db = new Db();
-  public users = [];
 
   constructor(private readonly mock: MockService) {}
 
@@ -45,5 +43,9 @@ export class UsersService {
       throw new BadRequestException('Exception user update!');
     }
     return updatedUser;
+  }
+
+  public async reset() {
+    await this.mock.reset();
   }
 }

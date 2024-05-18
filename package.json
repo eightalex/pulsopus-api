@@ -9,7 +9,8 @@
     "node": "v20.12.2"
   },
   "scripts": {
-    "dev": "yarn start:dev",
+    "dev": "yarn run start:dev",
+    "debug": "yarn run start:debug",
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",

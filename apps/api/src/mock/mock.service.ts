@@ -127,4 +127,8 @@ export class MockService {
     this.users = new MockDB<User>(sortBy(this.usersList, (u) => u.username));
     this.department = new MockDB<Department>(sortBy(departList, (u) => u.name));
   }
+
+  public async reset() {
+    await this.init();
+  }
 }

@@ -35,4 +35,10 @@ export class UsersController {
   public testId(@Param() params: { id: string }) {
     return params.id;
   }
+
+  @UsePublic()
+  @Get('/reset')
+  public async reset() {
+    await this.usersService.reset();
+  }
 }
