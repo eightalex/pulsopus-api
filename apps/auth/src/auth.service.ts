@@ -170,7 +170,7 @@ export class AuthService {
         await this.usersService.updateUser(u);
         clearTimeout(tId);
         resolve(u);
-      }, 15000);
+      }, 60000);
     });
   }
 }

@@ -1,6 +1,6 @@
 import { UsePublic } from '@app/common';
 import { UsersFilterRequestDto } from '@app/dto/users/users-filter.request.dto';
-import { User, USER_GROUP } from '@app/entities';
+import { EUserStatus, User, USER_GROUP } from '@app/entities';
 import {
   Controller,
   Get,
@@ -23,7 +23,6 @@ export class UsersController {
   public async index(
     @Query(ValidationPipe) filter: UsersFilterRequestDto,
   ): Promise<{ users: User[] }> {
-    console.log('filter', filter);
     const users = await this.usersService.findAll(
       filter as Record<string, string[]>,
     );
@@ -31,14 +30,42 @@ export class UsersController {
   }
 
   @UsePublic()
-  @Get(':id')
-  public testId(@Param() params: { id: string }) {
-    return params.id;
+  @Get('reset')
+  public async reset() {
+    await this.usersService.reset();
+    return 'reset';
   }
 
   @UsePublic()
-  @Get('/reset')
-  public async reset() {
-    await this.usersService.reset();
+  @Get(':id')
+  public testId(@Param() params: { id: User['id'] }) {
+    return this.usersService.getById(params.id);
+  }
+
+  @UsePublic()
+  @Get(':id/status/:status')
+  public async changeUserStatusById(
+    @Param() params: { id: User['id']; status: EUserStatus },
+  ) {
+    const res = {
+      successfully: true,
+      statuses: [...Object.values(EUserStatus)],
+    };
+    try {
+      const user = await this.usersService.changeUserStatusById(
+        params.id,
+        params.status,
+      );
+      return {
+        ...res,
+        user,
+      };
+    } catch (err) {
+      return {
+        ...res,
+        successfully: false,
+        message: err.message,
+      };
+    }
   }
 }
