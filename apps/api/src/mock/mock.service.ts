@@ -126,4 +126,13 @@ export class MockService {
     this.department = new MockDB<Department>(this.departmentList);
     this.users = new MockDB<User>(this.usersList);
   }
+
+  public async reset() {
+    this.readed = [];
+    this.usersList = [];
+    this.departmentList = [];
+    this.users = undefined;
+    this.department = undefined;
+    await this.init();
+  }
 }
