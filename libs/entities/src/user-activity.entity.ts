@@ -4,6 +4,8 @@ export class UserActivity {
   refId: User['id'];
   date: string;
   value: string;
+  rate: number;
+  trend: number;
 
   constructor(partial: Partial<UserActivity>) {
     Object.assign(this, partial);

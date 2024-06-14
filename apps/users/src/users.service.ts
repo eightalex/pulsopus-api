@@ -38,7 +38,11 @@ export class UsersService {
 
   public async findAll(filter: Record<string, string[]>): Promise<User[]> {
     const usrs = await this.mock.users.find();
-    return usrs.filter((u) => u._filter(filter));
+    return usrs
+      .filter((u) => u._filter(filter))
+      .sort((p, n) =>
+        p.username.toLowerCase().localeCompare(n.username.toLowerCase()),
+      );
   }
 
   public async findAllForRole(
@@ -49,7 +53,16 @@ export class UsersService {
       throw new BadRequestException('Unexpected exception. No user role');
     }
     const usrs = await this.findAll(filter);
-    return usrs.filter((u) => u._viewByRole(role));
+    return usrs
+      .filter((u) => u._viewByRole(role))
+      .sort((p, n) => {
+        const statusA = p.status.value;
+        const statusB = n.status.value;
+        const statusOrdering = [EUserStatus.PENDING];
+        return (
+          statusOrdering.indexOf(statusA) - statusOrdering.indexOf(statusB)
+        );
+      });
   }
 
   public async updateUser(user: User): Promise<User> {

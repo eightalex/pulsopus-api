@@ -1,7 +1,14 @@
 import { UsePublic, UseRoles, UserTokenRole } from '@app/common';
 import { UsersFilterRequestDto } from '@app/dto/users/users-filter.request.dto';
 import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
-import { EUserRole, EUserStatus, User, USER_GROUP } from '@app/entities';
+import {
+  EUserRole,
+  EUserStatus,
+  User,
+  USER_GROUP,
+  UserRole,
+  UserStatus,
+} from '@app/entities';
 import {
   Body,
   Controller,
@@ -41,6 +48,26 @@ export class UsersController {
   ): Promise<{ user: User }> {
     const user = await this.usersService.updateUserByIdDto(params.id, body);
     return { user };
+  }
+
+  @Get('statuses')
+  public async getUserStatuses(
+    @UserTokenRole() fromRole: EUserRole,
+  ): Promise<{ statuses: UserStatus[] }> {
+    const statuses = Object.keys(EUserStatus).map((k) =>
+      UserStatus.of(k as EUserStatus, fromRole),
+    );
+    return { statuses };
+  }
+
+  @Get('roles')
+  public async getUserRoles(
+    @UserTokenRole() fromRole: EUserRole,
+  ): Promise<{ roles: UserRole[] }> {
+    const roles = Object.keys(EUserRole).map((k) =>
+      UserRole.of(k as EUserRole, fromRole),
+    );
+    return { roles };
   }
 
   @UsePublic()
