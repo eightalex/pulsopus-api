@@ -27,7 +27,7 @@ export class UsersFilterRequestDto {
   @IsString({ each: true })
   @Type(() => String)
   @Transform((params) => trsFunc(params, Object.keys(EUserRole)))
-  roles?: EUserRole[];
+  role?: EUserRole;
 
   @IsOptional()
   @IsArray()

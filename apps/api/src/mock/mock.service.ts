@@ -1,12 +1,13 @@
-import { sortBy } from 'lodash';
-import { EDepartment, User } from '@app/entities';
+// import { sortBy } from 'lodash';
+import { EDepartment, User, UserActivity } from '@app/entities';
 import { Department } from '@app/entities/department.entity';
-import { UserActivity } from '@app/entities/user-activity.entity';
 import { Injectable } from '@nestjs/common';
 import { CsvRead, IReaded } from '@/api/src/mock/helpers/csv-read';
 import { createFromCsv, usersMock } from '@/api/src/mock/helpers/mock';
 
-class MockDB<Type extends { id: string }> {
+class MockDB<
+  Type extends { id: string; createdAt: number; updatedAt: number },
+> {
   list: Type[] = [];
   constructor(list: Type[]) {
     this.list = [...Array.from(list)];
@@ -44,6 +45,7 @@ class MockDB<Type extends { id: string }> {
   public async update(update: Type): Promise<Type> {
     let entity = null;
     this.list.map((e) => {
+      update.updatedAt = Date.now();
       if (e.id !== update.id) return e;
       entity = update;
       return update;
@@ -65,74 +67,63 @@ export class MockService {
     this.init();
   }
 
-  private async init() {
-    this.readed = await new CsvRead().readFile();
-    const csvusrs = this.readed.map((r) => createFromCsv(r));
-    this.usersList = [...csvusrs, ...usersMock];
-    //
-    const dps = this.usersList.reduce((acc, u) => {
-      const act = acc[u.department.name] || {};
-      u.activity.forEach(({ date, value }) => {
-        let res = act[date] || 0;
-        if (Number(value)) {
-          res = (res + Number(value)) / 2;
-        }
-        act[date] = res;
-      });
-      acc[u.department.name] = act;
-      return acc;
-    }, {});
-
-    const companyData = Object.values(dps).reduce((acc, value) => {
-      for (const [date, v] of Object.entries(value)) {
-        if (!v) continue;
-        const pv = acc[date] || 0;
-        if (!pv) {
-          acc[date] = v;
-        } else {
-          acc[date] = (pv + v) / 2;
-        }
-      }
-      return acc;
-    }, {});
-
-    const companyDepartment = new Department({
-      name: EDepartment.COMPANY,
-      activity: Object.entries(companyData).map(
-        ([date, value]) => new UserActivity({ date, value }),
-      ),
+  private createStockDepartments() {
+    return Object.keys(EDepartment).map((k: keyof typeof EDepartment) => {
+      return Department.of(EDepartment[k]);
     });
-
-    const departList = Object.entries(dps).map(
-      ([name, data]: [EDepartment, Record<string, number>]) =>
-        new Department({
-          name,
-          activity: Object.entries(data).map(
-            ([date, value]) =>
-              new UserActivity({ date, value: value.toString() }),
-          ),
-        }),
-    );
-
-    departList.push(companyDepartment);
-    this.departmentList = departList;
-
-    this.usersList = this.usersList.map((u) => {
-      companyDepartment.addUser(u);
-      u.department = departList.find(({ name }) => u.department.name === name);
-      u.department.addUser(u);
-      return u;
-    });
-
-    this.users = new MockDB<User>(sortBy(this.usersList, (u) => u.username));
-    this.department = new MockDB<Department>(sortBy(departList, (u) => u.name));
   }
 
-  public async reset() {
-    this.usersList = undefined;
-    this.departmentList = undefined;
-    this.users = undefined;
-    this.department = undefined;
-    await this.init();
+  private async createStockUsers() {
+    this.readed = await new CsvRead().readFile();
+    const csvusrs = this.readed.map((r) => createFromCsv(r));
+    return [...csvusrs, ...usersMock];
+  }
+
+  private async init() {
+    const deps = this.createStockDepartments();
+    const users = await this.createStockUsers();
+    //
+    this.departmentList = deps.map((d) => {
+      users.forEach((u) => {
+        if (u.department.value !== d.value) return;
+        u.department = d;
+        d.users.push(u);
+      });
+      return d;
+    });
+
+    this.departmentList = this.departmentList.reduce((acc, d, _, arr) => {
+      if (d.value !== EDepartment.COMPANY) return [...acc, d];
+      d.users = arr.reduce((us, d) => {
+        return [...us, ...d.users];
+      }, [] as User[]);
+      return [...acc, d];
+    }, [] as Department[]);
+
+    this.departmentList = this.departmentList.map((d) => {
+      const map = d.users.reduce((map, a) => {
+        a.activity.forEach(({ date, value }) => {
+          const prevV = map.get(date) || Number(value);
+          const nextV = prevV + Number(value) / 2;
+          map.set(date, nextV);
+        });
+        return map;
+      }, new Map<string, number>());
+      d.activity = [...map].map(([date, value]) =>
+        UserActivity.of(d.id, date, value.toString()),
+      );
+      return d;
+    });
+
+    const compDep = this.departmentList.find(
+      (d) => d.value === EDepartment.COMPANY,
+    );
+
+    if (compDep) {
+      this.usersList = compDep.users;
+    }
+
+    this.department = new MockDB<Department>(this.departmentList);
+    this.users = new MockDB<User>(this.usersList);
   }
 }

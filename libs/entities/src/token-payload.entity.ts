@@ -3,7 +3,8 @@ import { User } from '@app/entities';
 export class TokenPayload {
   sub: User['id'];
   username: User['username'];
-  roles: User['roles'];
+  role: User['role'];
+  status: User['status'];
 
   constructor(partial: Partial<TokenPayload>) {
     Object.assign(this, partial);
@@ -13,7 +14,8 @@ export class TokenPayload {
     const payload = new TokenPayload({
       sub: user.id,
       username: user.username,
-      roles: user.roles,
+      role: user.role,
+      status: user.status,
     });
     return JSON.parse(JSON.stringify(payload));
   }

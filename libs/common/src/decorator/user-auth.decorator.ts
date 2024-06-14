@@ -9,7 +9,6 @@ export const UserAuthorization = createParamDecorator(
 
 export const UserLoginToken = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
-    const loginToken = ctx.switchToHttp().getRequest().get('login-token');
-    return loginToken;
+    return ctx.switchToHttp().getRequest().get('login-token');
   },
 );

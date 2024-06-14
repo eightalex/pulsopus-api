@@ -1,4 +1,11 @@
-import { EUserStatus, User, UserStatus } from '@app/entities';
+import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
+import {
+  EUserRole,
+  EUserStatus,
+  User,
+  UserRole,
+  UserStatus,
+} from '@app/entities';
 import {
   BadRequestException,
   Injectable,
@@ -34,6 +41,17 @@ export class UsersService {
     return usrs.filter((u) => u._filter(filter));
   }
 
+  public async findAllForRole(
+    filter: Record<string, string[]>,
+    role: EUserRole,
+  ): Promise<User[]> {
+    if (!role) {
+      throw new BadRequestException('Unexpected exception. No user role');
+    }
+    const usrs = await this.findAll(filter);
+    return usrs.filter((u) => u._viewByRole(role));
+  }
+
   public async updateUser(user: User): Promise<User> {
     const updatedUser = await this.mock.users.update(user);
     if (!updatedUser) {
@@ -67,5 +85,21 @@ export class UsersService {
     user.status = UserStatus.of(st);
     await this.updateUser(user);
     return user;
+  }
+
+  public async updateUserByIdDto(
+    id: User['id'],
+    dto: UsersUpdateBodyRequestDto,
+  ): Promise<User> {
+    const user = await this.getById(id);
+    Object.entries(dto).forEach(([k, v]) => {
+      if (k === 'status') {
+        user[k] = UserStatus.of(v);
+      }
+      if (k === 'role') {
+        user[k] = UserRole.of(v);
+      }
+    });
+    return this.updateUser(user);
   }
 }

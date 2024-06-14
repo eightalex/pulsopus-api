@@ -1,11 +1,11 @@
 import { Response } from 'express';
-import { UsePublic, UserAuthorization } from '@app/common';
+import { UsePublic, UserAuthorization, UseRoles } from '@app/common';
 import {
   AuthLoginRequestDto,
   AuthLoginSendRequestDto,
   AuthResponseDto,
 } from '@app/dto';
-import { USER_GROUP } from '@app/entities';
+import { EUserRole, USER_GROUP } from '@app/entities';
 import {
   Body,
   Controller,
@@ -62,7 +62,6 @@ export class AuthController {
     type: AuthResponseDto,
   })
   // endpoint
-  @UsePublic()
   @Post('token')
   @HttpCode(HttpStatus.OK)
   public async token(
@@ -85,7 +84,6 @@ export class AuthController {
     description: 'logout user OK',
   })
   // endpoint
-  @UsePublic()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   public async logout(
@@ -107,7 +105,7 @@ export class AuthController {
   @ApiBody({ type: AuthLoginSendRequestDto })
   @ApiResponse({ status: 204, description: 'request sent' })
   // endpoint
-  @UsePublic()
+  @UseRoles(EUserRole.ADMIN)
   @Post('request-access')
   @HttpCode(HttpStatus.NO_CONTENT)
   public async requestAccessAdmin(

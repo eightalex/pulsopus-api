@@ -11,10 +11,4 @@ export class ApiController {
   public index(): string {
     return this.apiService.getIndex();
   }
-
-  @UsePublic()
-  @Get('cloudinary')
-  public cloudinary(): { timestamp: number; signature: string } {
-    return this.apiService.cloudinary();
-  }
 }

@@ -4,7 +4,9 @@ import { EUserRole } from './constants';
 
 export class UserRole extends AbstractEntity {
   @ApiProperty({ enum: () => EUserRole })
-  public name: EUserRole;
+  public value: EUserRole;
+
+  public description?: string;
 
   constructor(partial: Partial<UserRole>) {
     super();
@@ -12,6 +14,6 @@ export class UserRole extends AbstractEntity {
   }
 
   static of(role: EUserRole): UserRole {
-    return new UserRole({ name: role });
+    return new UserRole({ value: role });
   }
 }

@@ -1,4 +1,4 @@
-import { JwtAccessGuard } from '@app/common/guard';
+import { JwtAccessGuard, RoleGuard } from '@app/common/guard';
 import { JwtAccessStrategy, JwtRefreshStrategy } from '@app/common/strategy';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
@@ -14,6 +14,10 @@ import { PassportModule } from '@nestjs/passport';
     {
       provide: APP_GUARD,
       useClass: JwtAccessGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RoleGuard,
     },
   ],
   exports: [JwtService],

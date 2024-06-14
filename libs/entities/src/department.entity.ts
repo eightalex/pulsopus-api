@@ -1,29 +1,22 @@
 import { Expose, Transform } from 'class-transformer';
+import { v4 as uuidv4 } from 'uuid';
 import { AbstractEntity } from '@app/entities/abstract.entity';
+import { departmentNames } from '@app/entities/constants/names';
 import { User } from '@app/entities/user.entity';
 import { UserActivity } from '@app/entities/user-activity.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { EDepartment } from './constants';
 
-const departmentLabels: Record<EDepartment, string> = {
-  [EDepartment.DEVELOPMENT]: EDepartment.DEVELOPMENT.toLowerCase(),
-  [EDepartment.PRODUCT]: EDepartment.PRODUCT.toLowerCase(),
-  [EDepartment.ADMINISTRATION]: EDepartment.ADMINISTRATION.toLowerCase(),
-  [EDepartment.MARKETING]: EDepartment.MARKETING.toLowerCase(),
-  [EDepartment.DESIGN]: EDepartment.DESIGN.toLowerCase(),
-  [EDepartment.HR]: EDepartment.HR.toLowerCase(),
-  [EDepartment.UNKNOWN]: EDepartment.UNKNOWN.toLowerCase(),
-  [EDepartment.COMPANY]: EDepartment.COMPANY.toLowerCase(),
-};
-
 export class Department extends AbstractEntity {
+  public id: string;
+
   @ApiProperty({ enum: () => EDepartment })
-  public name: EDepartment;
+  public value: EDepartment;
 
   @ApiProperty({ type: () => [UserActivity] })
   @Transform(({ value: activity }) =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    activity.map(({ userId, ...data }: UserActivity) => data),
+    activity.map(({ refId, ...data }: UserActivity) => data),
   )
   public activity: UserActivity[] = [];
 
@@ -38,17 +31,22 @@ export class Department extends AbstractEntity {
     department: EDepartment,
     rest: Partial<Department> = {},
   ): Department {
-    return new Department({ name: department, ...rest });
+    return new Department({
+      id: uuidv4(),
+      value: department,
+      ...rest,
+    });
   }
 
   @Expose()
   public get label(): string {
-    return departmentLabels[this.name];
+    return departmentNames[this.value];
   }
 
-  public addUser(users: User) {
-    const u = this.users.find(({ id }) => id === users.id);
+  public addUser(user: User) {
+    const u = this.users.find(({ id }) => id === user.id);
     if (u) return;
-    this.users.push(users);
+    user.department = this;
+    this.users.push(user);
   }
 }

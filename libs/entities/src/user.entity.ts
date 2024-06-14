@@ -5,11 +5,13 @@ import { Department } from '@app/entities/department.entity';
 import { Position } from '@app/entities/position.entity';
 import { UserActivity } from '@app/entities/user-activity.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { EDepartment, EPosition, EUserRole, EUserStatus } from './constants';
+import { EDepartment, EUserRole, EUserStatus } from './constants';
 import { UserRole } from './role.entity';
 import { UserStatus } from './user-status.entity';
 
 export class User extends AbstractEntity {
+  public id: string;
+
   public username: string;
 
   // @Expose({ groups: [USER_GROUP.AUTH] })
@@ -23,36 +25,39 @@ export class User extends AbstractEntity {
 
   public avatar: string;
 
-  @ApiProperty({ type: () => [UserRole] })
-  @Transform(({ value: roles }) => roles.map((r) => r.name))
-  public roles: UserRole[] = [UserRole.of(EUserRole.VIEWER)];
+  @ApiProperty({ type: () => UserRole })
+  @Transform(({ value: role }: { value: UserRole }) => role.value)
+  public role: UserRole = UserRole.of(EUserRole.VIEWER);
 
   @ApiProperty({ type: () => UserStatus })
-  @Expose({ groups: [USER_GROUP.ALL] })
-  @Transform(({ value: status }) => status.name)
+  @Expose({ groups: [USER_GROUP.FULL] })
+  @Transform(({ value: status }: { value: UserStatus }) => status.value)
   public status: UserStatus;
 
   @ApiProperty({ type: () => Department })
-  @Expose({ groups: [USER_GROUP.ALL] })
+  @Expose({ groups: [USER_GROUP.FULL] })
   @Transform(({ value: department }: { value: Department }) => ({
-    value: department.name,
+    value: department.value,
     label: department.label,
   }))
-  public department: Department = Department.of(EDepartment.UNKNOWN);
+  public department: Department = Department.of(EDepartment.COMPANY);
 
   @ApiProperty({ type: () => Position })
-  @Expose({ groups: [USER_GROUP.ALL] })
-  @Transform(({ value: position }: { value: Position }) => ({
-    value: position.name,
-    label: position.label,
-  }))
-  public position: Position = Position.of(EPosition.UNKNOWN);
+  @Expose({ groups: [USER_GROUP.FULL] })
+  @Transform(({ value: position }: { value: Position }) => {
+    if (!position) return null;
+    return {
+      value: position?.name,
+      label: position?.label,
+    };
+  })
+  public position?: Position = null;
 
   @ApiProperty({ type: () => [UserActivity] })
-  @Expose({ groups: [USER_GROUP.ALL] })
+  @Expose({ groups: [USER_GROUP.FULL] })
   @Transform(({ value: activity }) =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    activity.map(({ userId, ...data }: UserActivity) => data),
+    activity.map(({ refId, ...data }: UserActivity) => data),
   )
   public activity: UserActivity[] = [];
 
@@ -65,23 +70,23 @@ export class User extends AbstractEntity {
     return password === this.password;
   }
 
-  public hasRole(role: EUserRole): boolean {
-    return Boolean(this.roles.find(({ name }) => name === role));
+  public isRole(role: EUserRole): boolean {
+    return this.role.value === role;
   }
 
-  @Expose({ groups: [USER_GROUP.ALL] })
+  @Expose({ groups: [USER_GROUP.FULL] })
   public get isActive(): boolean {
-    return this.status.name === EUserStatus.ACTIVE;
+    return this.status.value === EUserStatus.ACTIVE;
   }
 
-  @Expose({ groups: [USER_GROUP.ALL] })
+  @Expose({ groups: [USER_GROUP.FULL] })
   public get isPending(): boolean {
-    return this.status.name === EUserStatus.PENDING;
+    return this.status.value === EUserStatus.PENDING;
   }
 
-  @Expose({ groups: [USER_GROUP.ALL] })
+  @Expose({ groups: [USER_GROUP.FULL] })
   public get isAdmin(): boolean {
-    return this.hasRole(EUserRole.ADMIN);
+    return this.isRole(EUserRole.ADMIN);
   }
 
   public _filter(filter: Record<string, string[]>): boolean {
@@ -98,5 +103,18 @@ export class User extends AbstractEntity {
 
       return fvs.some((v) => uvs.includes(v));
     });
+  }
+
+  public _viewByRole(role: EUserRole): boolean {
+    switch (role) {
+      case EUserRole.VIEWER:
+        return this.isActive;
+      case EUserRole.MANAGER:
+        return !this.isPending;
+      case EUserRole.ADMIN:
+        return true;
+      default:
+        return false;
+    }
   }
 }

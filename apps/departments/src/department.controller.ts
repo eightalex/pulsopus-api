@@ -5,7 +5,7 @@ import { Controller, Get, SerializeOptions } from '@nestjs/common';
 import { DepartmentService } from './department.service';
 
 @Controller('departments')
-@SerializeOptions({ groups: [USER_GROUP.ALL] })
+@SerializeOptions({ groups: [USER_GROUP.FULL] })
 export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService) {}
 

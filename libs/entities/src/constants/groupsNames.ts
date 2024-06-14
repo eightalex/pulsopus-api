@@ -1,4 +1,4 @@
 export const USER_GROUP = {
-  ALL: 'USER_ALL',
+  FULL: 'USER_FULL',
   AUTH: 'USER_AUTH',
 };

@@ -1,17 +1,17 @@
+import * as moment from 'moment/moment';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  Department,
   EDepartment,
-  EPosition,
   EUserRole,
   EUserStatus,
   Position,
   User,
+  UserActivity,
   UserRole,
   UserStatus,
 } from '@app/entities';
-import { Department } from '@app/entities/department.entity';
-import { UserActivity } from '@app/entities/user-activity.entity';
-import { IReaded } from '@/api/src/mock/helpers/csv-read';
+import { IReaded } from './csv-read';
 
 const avatars = [
   'https://e7.pngegg.com/pngimages/799/987/png-clipart-computer-icons-avatar-icon-design-avatar-heroes-computer-wallpaper.png',
@@ -20,7 +20,9 @@ const avatars = [
   'https://banner2.cleanpng.com/20180625/req/kisspng-computer-icons-avatar-business-computer-software-user-avatar-5b3097fcae25c3.3909949015299112927133.jpg',
 ];
 
-const list = [[EUserRole.ADMIN], [EUserRole.USER], [EUserRole.VIEWER]];
+const list = Object.keys(EUserRole).map(
+  (k) => EUserRole[k as keyof typeof EUserRole],
+);
 
 export const rowParser = (row) => {
   return Object.entries(row).reduce((acc, [k, v]) => {
@@ -42,22 +44,37 @@ export const rowParser = (row) => {
   }, {} as any);
 };
 
-export const usersMock = list.map((roles) => {
+export const userMockByRoles = list.map((role) => {
   return new User({
-    username: [roles[0], roles[0]].map((s) => s.toLowerCase()).join(' '),
-    email: `${roles[0].toLowerCase()}@pulsopus.dev`,
+    id: uuidv4(),
+    username: [role].map((s) => s.toLowerCase()).join(' '),
+    email: `${role.toLowerCase()}@pulsopus.dev`,
     password: 'password',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
-    roles: roles.map(UserRole.of),
+    role: UserRole.of(role),
     status: UserStatus.of(
-      roles.includes(EUserRole.ADMIN)
+      [role].includes(EUserRole.ADMIN)
         ? EUserStatus.ACTIVE
         : EUserStatus.INACTIVE,
     ),
-    department: Department.of(EDepartment.UNKNOWN),
-    position: Position.of(EPosition.UNKNOWN),
+    department: Department.of(EDepartment.COMPANY),
+    position: null,
   });
 });
+export const usersMock = [
+  ...userMockByRoles,
+  new User({
+    id: uuidv4(),
+    username: 'user',
+    email: 'user@pulsopus.dev',
+    password: 'password',
+    avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
+    role: UserRole.of(EUserRole.VIEWER),
+    status: UserStatus.of(EUserStatus.INACTIVE),
+    department: Department.of(EDepartment.COMPANY),
+    position: null,
+  }),
+];
 
 export const createFromCsv = (r: IReaded) => {
   const id = uuidv4();
@@ -72,10 +89,12 @@ export const createFromCsv = (r: IReaded) => {
     password: 'password',
     refreshToken: 'refreshToken',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
-    roles: [UserRole.of(EUserRole.VIEWER)],
+    role: UserRole.of(EUserRole.VIEWER),
     status: UserStatus.of(EUserStatus.ACTIVE),
     department: Department.of(EDepartment.DEVELOPMENT),
     position: Position.ofLabel(r.position),
-    activity: Object.entries(r.data).map(([k, v]) => UserActivity.of(id, k, v)),
+    activity: Object.entries(r.data).map(([date, v]) =>
+      UserActivity.of(id, moment(date, 'DD-MM-YYYY').valueOf().toString(), v),
+    ),
   });
 };

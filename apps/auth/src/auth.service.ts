@@ -122,7 +122,7 @@ export class AuthService {
     const user = await this.usersService.getByEmail(signInCredential.login);
     await this.validateUserPassword(user, signInCredential.password);
     if (!user.isActive) {
-      throw new ForbiddenException(`Forbidden. STATUS: ${user.status.name}`);
+      throw new ForbiddenException(`Forbidden. STATUS: ${user.status.value}`);
     }
     const accessToken = await this.signToken(user);
     const refreshToken = await this.signToken(user, 'refresh');
@@ -137,6 +137,10 @@ export class AuthService {
     if (!t) throw new InvalidCredentialsException('Invalid token login');
     //
     const user = await this.usersService.getById(payload.sub);
+    if (!user.isActive) {
+      throw new ForbiddenException(`Forbidden. STATUS: ${user.status.value}`);
+    }
+
     const accessToken = await this.signToken(user);
     const refreshToken = await this.signToken(user, 'refresh');
     this.addToken(user.id, accessToken, token);
@@ -172,5 +176,10 @@ export class AuthService {
         resolve(u);
       }, 60000);
     });
+  }
+
+  public async checkUserByToken(token: string) {
+    const payload = await this.validateToken(token);
+    const user = await this.usersService.getById(payload.sub);
   }
 }

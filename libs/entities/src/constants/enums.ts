@@ -1,16 +1,15 @@
 export enum EUserRole {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
   VIEWER = 'VIEWER',
+  ADMIN = 'ADMIN',
+  MANAGER = 'MANAGER',
 }
 export enum EDepartment {
   COMPANY = 'COMPANY',
-  UNKNOWN = 'UNKNOWN',
-  DEVELOPMENT = 'DEVELOPMENT',
-  PRODUCT = 'PRODUCT',
   ADMINISTRATION = 'ADMINISTRATION',
-  MARKETING = 'MARKETING',
+  DEVELOPMENT = 'DEVELOPMENT',
   DESIGN = 'DESIGN',
+  PRODUCT = 'PRODUCT',
+  MARKETING = 'MARKETING',
   HR = 'HR',
 }
 
@@ -24,8 +23,8 @@ export enum EPosition {
 }
 
 export enum EUserStatus {
-  ACTIVE = 'ACTIVE',
   PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   DEACTIVATED = 'DEACTIVATED',
 }
