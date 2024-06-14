@@ -167,19 +167,5 @@ export class AuthService {
 
     u.status = UserStatus.of(EUserStatus.PENDING);
     await this.usersService.updateUser(u);
-
-    new Promise((resolve) => {
-      const tId = setTimeout(async () => {
-        u.status = UserStatus.of(EUserStatus.ACTIVE);
-        await this.usersService.updateUser(u);
-        clearTimeout(tId);
-        resolve(u);
-      }, 60000);
-    });
-  }
-
-  public async checkUserByToken(token: string) {
-    const payload = await this.validateToken(token);
-    const user = await this.usersService.getById(payload.sub);
   }
 }

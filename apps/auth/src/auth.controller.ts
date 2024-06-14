@@ -105,7 +105,7 @@ export class AuthController {
   @ApiBody({ type: AuthLoginSendRequestDto })
   @ApiResponse({ status: 204, description: 'request sent' })
   // endpoint
-  @UseRoles(EUserRole.ADMIN)
+  @UsePublic()
   @Post('request-access')
   @HttpCode(HttpStatus.NO_CONTENT)
   public async requestAccessAdmin(
