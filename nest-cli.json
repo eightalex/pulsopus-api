@@ -7,7 +7,8 @@
   "compilerOptions": {
     "plugins": [
       "@nestjs/swagger"
-    ]
+    ],
+    "webpack": true
   },
   "projects": {
     "common": {
@@ -35,6 +36,15 @@
       "sourceRoot": "libs/entities/src",
       "compilerOptions": {
         "tsConfigPath": "libs/entities/tsconfig.lib.json"
+      }
+    },
+    "database": {
+      "type": "library",
+      "root": "libs/database",
+      "entryFile": "index",
+      "sourceRoot": "libs/database/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/database/tsconfig.lib.json"
       }
     },
     "api": {
@@ -72,6 +82,6 @@
       "compilerOptions": {
         "tsConfigPath": "apps/departments/tsconfig.app.json"
       }
-    }
+    },
   }
 }

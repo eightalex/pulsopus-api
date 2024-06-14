@@ -78,12 +78,6 @@ export class UsersController {
   }
 
   @UsePublic()
-  @Get(':id')
-  public testId(@Param() params: { id: User['id'] }) {
-    return this.usersService.getById(params.id);
-  }
-
-  @UsePublic()
   @Get(':id/status/:status')
   public async changeUserStatusById(
     @Param() params: { id: User['id']; status: EUserStatus },

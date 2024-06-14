@@ -38,6 +38,12 @@
       ],
       "@app/entities/*": [
         "libs/entities/src/*"
+      ],
+      "@app/database": [
+        "libs/database/src"
+      ],
+      "@app/database/*": [
+        "libs/database/src/*"
       ]
     }
   }
