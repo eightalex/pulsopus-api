@@ -10,7 +10,7 @@ export interface IReaded
   data: Record<string, string>;
 }
 
-export class CsvRead {
+export class CsvUserData {
   private readed?: IReaded[];
   constructor() {
     this.getReadedFile();

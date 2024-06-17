@@ -1,9 +1,9 @@
 import { Expose, Transform } from 'class-transformer';
 import { v4 as uuidv4 } from 'uuid';
 import { AbstractEntity } from '@app/entities/abstract.entity';
+import { Activity } from '@app/entities/activity.entity';
 import { departmentNames } from '@app/entities/constants/names';
 import { User } from '@app/entities/user.entity';
-import { UserActivity } from '@app/entities/user-activity.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { EDepartment } from './constants';
 
@@ -13,12 +13,12 @@ export class Department extends AbstractEntity {
   @ApiProperty({ enum: () => EDepartment })
   public value: EDepartment;
 
-  @ApiProperty({ type: () => [UserActivity] })
-  @Transform(({ value: activity }) =>
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    activity.map(({ refId, ...data }: UserActivity) => data),
-  )
-  public activity: UserActivity[] = [];
+  // @ApiProperty({ type: () => [Activity] })
+  // @Transform(({ value: activity }) =>
+  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //   activity.map(({ ...data }: Activity) => data),
+  // )
+  // public activity: Activity[] = [];
 
   public users: User[] = [];
 
@@ -40,13 +40,28 @@ export class Department extends AbstractEntity {
 
   @Expose()
   public get label(): string {
-    return departmentNames[this.value];
+    return this.value ? departmentNames[this.value] : this.value;
   }
 
-  public addUser(user: User) {
-    const u = this.users.find(({ id }) => id === user.id);
-    if (u) return;
-    user.department = this;
-    this.users.push(user);
+  @Expose()
+  @ApiProperty({ type: () => [Activity] })
+  @Transform(({ value: activity }) =>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    activity.map(({ ...data }: Activity) => data),
+  )
+  public get activity(): Activity[] {
+    const map = new Map();
+    this.users.forEach((u) =>
+      u.activity.forEach(({ date, value }) => {
+        const prevValue = map.get(date);
+        if (!prevValue) {
+          map.set(date, value);
+        } else {
+          const nextValue = value ? prevValue + value : prevValue;
+          map.set(date, nextValue);
+        }
+      }),
+    );
+    return [...map].map(([date, value]) => Activity.of(date, value));
   }
 }

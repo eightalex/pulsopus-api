@@ -10,13 +10,20 @@ export class TokenPayload {
     Object.assign(this, partial);
   }
 
-  static of(user: User): typeof TokenPayload {
-    const payload = new TokenPayload({
+  public toPlainObject(): typeof TokenPayload {
+    return JSON.parse(JSON.stringify(this));
+  }
+
+  static of(user: User): TokenPayload {
+    return new TokenPayload({
       sub: user.id,
       username: user.username,
       role: user.role,
       status: user.status,
     });
-    return JSON.parse(JSON.stringify(payload));
+  }
+
+  static ofPlainObject(user: User): typeof TokenPayload {
+    return TokenPayload.of(user).toPlainObject();
   }
 }

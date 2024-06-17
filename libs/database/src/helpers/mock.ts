@@ -11,7 +11,7 @@ import {
   UserRole,
   UserStatus,
 } from '@app/entities';
-import { IReaded } from './csv-read';
+import { IReaded } from './csv-user-data';
 
 const avatars = [
   'https://e7.pngegg.com/pngimages/799/987/png-clipart-computer-icons-avatar-icon-design-avatar-heroes-computer-wallpaper.png',
@@ -57,8 +57,6 @@ export const userMockByRoles = list.map((role) => {
         ? EUserStatus.ACTIVE
         : EUserStatus.INACTIVE,
     ),
-    department: Department.of(EDepartment.COMPANY),
-    position: null,
   });
 });
 export const usersMock = [
@@ -71,13 +69,12 @@ export const usersMock = [
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
     role: UserRole.of(EUserRole.VIEWER),
     status: UserStatus.of(EUserStatus.INACTIVE),
-    department: Department.of(EDepartment.COMPANY),
-    position: null,
   }),
 ];
 
 export const createFromCsv = (r: IReaded) => {
   const id = uuidv4();
+  const createdAt = moment('09.04.2024', 'DD.MM.YYYY').valueOf();
   return new User({
     id,
     username: r.name,
@@ -94,7 +91,12 @@ export const createFromCsv = (r: IReaded) => {
     department: Department.of(EDepartment.DEVELOPMENT),
     position: Position.ofLabel(r.position),
     activity: Object.entries(r.data).map(([date, v]) =>
-      UserActivity.of(id, moment(date, 'DD-MM-YYYY').valueOf().toString(), v),
+      UserActivity.of(
+        moment(date, 'DD-MM-YYYY').valueOf().toString(),
+        Number(v || 0),
+      ),
     ),
+    createdAt,
+    updatedAt: createdAt,
   });
 };

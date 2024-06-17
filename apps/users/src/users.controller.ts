@@ -40,6 +40,13 @@ export class UsersController {
     return { users };
   }
 
+  @Get('public')
+  @UsePublic()
+  public async usePublic(): Promise<{ users: User[] }> {
+    const users = await this.usersService.findAll();
+    return { users };
+  }
+
   @Put(':id')
   @UseRoles(EUserRole.ADMIN)
   public async updateUser(
@@ -68,13 +75,6 @@ export class UsersController {
       UserRole.of(k as EUserRole, fromRole),
     );
     return { roles };
-  }
-
-  @UsePublic()
-  @Get('reset')
-  public async reset() {
-    await this.usersService.reset();
-    return 'reset';
   }
 
   @UsePublic()

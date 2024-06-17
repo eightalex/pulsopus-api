@@ -1,10 +1,10 @@
+import { DatabaseService } from '@app/database/database.service';
 import { Injectable } from '@nestjs/common';
-import { MockService } from '@/api/src/mock/mock.service';
 
 @Injectable()
 export class DepartmentService {
-  constructor(private readonly mock: MockService) {}
+  constructor(private readonly db: DatabaseService) {}
   public async get() {
-    return this.mock.department.find();
+    return this.db.departmentRepository.find();
   }
 }

@@ -1,11 +1,11 @@
 import { Response } from 'express';
-import { UsePublic, UserAuthorization, UseRoles } from '@app/common';
+import { UsePublic, UserAuthorization } from '@app/common';
 import {
   AuthLoginRequestDto,
   AuthLoginSendRequestDto,
   AuthResponseDto,
 } from '@app/dto';
-import { EUserRole, USER_GROUP } from '@app/entities';
+import { USER_GROUP } from '@app/entities';
 import {
   Body,
   Controller,

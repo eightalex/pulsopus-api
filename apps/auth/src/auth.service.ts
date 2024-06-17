@@ -10,7 +10,6 @@ import {
   ForbiddenException,
   HttpException,
   HttpStatus,
-  Inject,
   Injectable,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -24,7 +23,7 @@ export class AuthService {
   public tokens: Map<string, string[]> = new Map();
 
   constructor(
-    @Inject(UsersService) private readonly usersService: UsersService,
+    private readonly usersService: UsersService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
   ) {}
@@ -53,7 +52,7 @@ export class AuthService {
     }
 
     const access = this.getSecret(type);
-    return this.jwt.signAsync(TokenPayload.of(user), {
+    return this.jwt.signAsync(TokenPayload.ofPlainObject(user), {
       secret: access.key,
       expiresIn: access.expire,
     });
@@ -116,11 +115,7 @@ export class AuthService {
     this.tokens = map;
   }
 
-  public async signIn(
-    signInCredential: AuthLoginRequestDto,
-  ): Promise<AuthResponseDto> {
-    const user = await this.usersService.getByEmail(signInCredential.login);
-    await this.validateUserPassword(user, signInCredential.password);
+  private async systemLogin(user: User): Promise<AuthResponseDto> {
     if (!user.isActive) {
       throw new ForbiddenException(`Forbidden. STATUS: ${user.status.value}`);
     }
@@ -130,6 +125,14 @@ export class AuthService {
     return AuthResponseDto.of(accessToken, refreshToken, user);
   }
 
+  public async signIn(
+    signInCredential: AuthLoginRequestDto,
+  ): Promise<AuthResponseDto> {
+    const user = await this.usersService.getByEmail(signInCredential.login);
+    await this.validateUserPassword(user, signInCredential.password);
+    return this.systemLogin(user);
+  }
+
   public async tokenLogin(token: string): Promise<AuthResponseDto> {
     const payload = await this.validateToken(token);
     //
@@ -137,14 +140,19 @@ export class AuthService {
     if (!t) throw new InvalidCredentialsException('Invalid token login');
     //
     const user = await this.usersService.getById(payload.sub);
-    if (!user.isActive) {
-      throw new ForbiddenException(`Forbidden. STATUS: ${user.status.value}`);
-    }
+    return this.systemLogin(user);
+  }
 
-    const accessToken = await this.signToken(user);
-    const refreshToken = await this.signToken(user, 'refresh');
-    this.addToken(user.id, accessToken, token);
-    return AuthResponseDto.of(accessToken, refreshToken, user);
+  private async singInByUserId(userId: User['id']) {
+    const user = await this.usersService.getById(userId);
+    return this.systemLogin(user);
+  }
+
+  public async updateTokenPayloadByUserId(
+    userId: User['id'],
+  ): Promise<TokenPayload> {
+    const res = await this.singInByUserId(userId);
+    return TokenPayload.of(res.user);
   }
 
   public async logout(token: string) {

@@ -5,7 +5,7 @@ import { Department } from '@app/entities/department.entity';
 import { Position } from '@app/entities/position.entity';
 import { UserActivity } from '@app/entities/user-activity.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { EDepartment, EUserRole, EUserStatus } from './constants';
+import { EUserRole, EUserStatus } from './constants';
 import { UserRole } from './role.entity';
 import { UserStatus } from './user-status.entity';
 
@@ -36,28 +36,31 @@ export class User extends AbstractEntity {
 
   @ApiProperty({ type: () => Department })
   @Expose({ groups: [USER_GROUP.FULL] })
-  @Transform(({ value: department }: { value: Department }) => ({
-    value: department.value,
-    label: department.label,
-  }))
-  public department: Department = Department.of(EDepartment.COMPANY);
+  @Transform(({ value: department }: { value: Department }) => {
+    if (!department) return undefined;
+    return {
+      value: department?.value,
+      label: department?.label,
+    };
+  })
+  public department?: Department;
 
   @ApiProperty({ type: () => Position })
   @Expose({ groups: [USER_GROUP.FULL] })
   @Transform(({ value: position }: { value: Position }) => {
-    if (!position) return null;
+    if (!position) return undefined;
     return {
       value: position?.name,
       label: position?.label,
     };
   })
-  public position?: Position = null;
+  public position?: Position;
 
-  @ApiProperty({ type: () => [UserActivity] })
   @Expose({ groups: [USER_GROUP.FULL] })
+  @ApiProperty({ type: () => [UserActivity] })
   @Transform(({ value: activity }) =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    activity.map(({ refId, ...data }: UserActivity) => data),
+    activity.map(({ ...data }: UserActivity) => data),
   )
   public activity: UserActivity[] = [];
 

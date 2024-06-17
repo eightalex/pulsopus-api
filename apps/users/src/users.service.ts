@@ -1,3 +1,4 @@
+import { DatabaseService } from '@app/database/database.service';
 import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
 import {
   EUserRole,
@@ -11,14 +12,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MockService } from '@/api/src/mock/mock.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly mock: MockService) {}
+  constructor(private readonly db: DatabaseService) {}
 
   public async getById(id: User['id']) {
-    const user = await this.mock.users.findOneBy({ id });
+    const user = await this.db.userRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -26,18 +26,16 @@ export class UsersService {
   }
 
   public async getByEmail(email: User['email']): Promise<User> {
-    const user = await this.mock.users.findOneBy({ email });
+    const user = await this.db.userRepository.findOneBy({ email });
     if (!user) {
-      // const us = createMember(email);
-      // this.users = [...this.users, us];
-      // return us;
       throw new NotFoundException('User not found!');
     }
     return user;
   }
 
-  public async findAll(filter: Record<string, string[]>): Promise<User[]> {
-    const usrs = await this.mock.users.find();
+  public async findAll(filter?: Record<string, string[]>): Promise<User[]> {
+    const usrs = await this.db.userRepository.find();
+    if (!filter) return usrs;
     return usrs
       .filter((u) => u._filter(filter))
       .sort((p, n) =>
@@ -66,24 +64,11 @@ export class UsersService {
   }
 
   public async updateUser(user: User): Promise<User> {
-    const updatedUser = await this.mock.users.update(user);
+    const updatedUser = await this.db.userRepository.update(user);
     if (!updatedUser) {
       throw new BadRequestException('Exception user update!');
     }
     return updatedUser;
-  }
-
-  public async reset() {
-    const users = await this.mock.users.find();
-    for (const user of users) {
-      try {
-        if (user.isAdmin) continue;
-        user.status = UserStatus.of(EUserStatus.INACTIVE);
-        await this.updateUser(user);
-      } catch (err) {
-        console.error(err.message);
-      }
-    }
   }
 
   public async changeUserStatusById(
