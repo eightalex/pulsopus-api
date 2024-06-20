@@ -1,4 +1,4 @@
-import { Department, EDepartment, User, UserActivity } from '@app/entities';
+import { Activity, Department, EDepartment, User } from '@app/entities';
 import { Injectable } from '@nestjs/common';
 import { CsvUserData } from './helpers/csv-user-data';
 import { createFromCsv, usersMock } from './helpers/mock';
@@ -37,6 +37,7 @@ export class DatabaseService {
   }
 
   public computeData() {
+    const companyActivityMap: Map<string, number> = new Map();
     for (const [userId, user] of this.usersMap) {
       user.department =
         this.departmentsValuesMap.get(user.department?.value) || undefined;
@@ -48,6 +49,11 @@ export class DatabaseService {
       if (user.department) {
         user.department.users.push(user);
       }
+
+      user.activity.forEach(({ date, value }) => {
+        const compDayAct = companyActivityMap.get(date) || 0;
+        companyActivityMap.set(date, compDayAct + Number(value) || 0);
+      });
     }
 
     const actMap = this.departmentsValuesMap
@@ -58,16 +64,28 @@ export class DatabaseService {
       }, new Map());
 
     for (const d of this.departmentsValuesMap.values()) {
+      const depActMap: Map<string, number> = new Map();
       d.users = d.users.map((u) => {
         u.activity = u.activity.map(({ date, value }, index, activities) => {
           const cmpAct = actMap.get(date) || value;
           const rate = !value ? 0 : (value / cmpAct) * 100;
           const prevV = !index ? 0 : activities[index - 1].value;
           const trend = value - prevV;
-          return UserActivity.of(date, value, rate, trend);
+          const depDayAct = depActMap.get(date) || 0;
+          depActMap.set(date, depDayAct + Number(value) || 0);
+          return Activity.of(date, value, rate, trend);
         });
         this.usersMap.set(u.id, u);
         return u;
+      });
+      d.activity = [...depActMap.entries()].map(([date, value]) => {
+        const cmpValue = companyActivityMap.get(date) || 0;
+        const rate = !cmpValue || !value ? 0 : (value / cmpValue) * 100;
+        return new Activity({
+          date,
+          value,
+          rate,
+        });
       });
       this.departmentsMap.set(d.id, d);
     }

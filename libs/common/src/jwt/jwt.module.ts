@@ -1,4 +1,4 @@
-import { JwtAccessGuard, RoleGuard } from '@app/common/guard';
+import { JwtAccessGuard, PermissionGuard, RoleGuard } from '@app/common/guard';
 import { JwtAccessStrategy, JwtRefreshStrategy } from '@app/common/strategy';
 import { DatabaseService } from '@app/database/database.service';
 import { Module } from '@nestjs/common';
@@ -21,6 +21,10 @@ import { UsersService } from '@/users/src/users.service';
     {
       provide: APP_GUARD,
       useClass: RoleGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard,
     },
     AuthService,
     UsersService,

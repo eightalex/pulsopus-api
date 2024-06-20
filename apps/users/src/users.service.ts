@@ -1,12 +1,6 @@
 import { DatabaseService } from '@app/database/database.service';
 import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
-import {
-  EUserRole,
-  EUserStatus,
-  User,
-  UserRole,
-  UserStatus,
-} from '@app/entities';
+import { EUserRole, EUserStatus, Role, User, UserStatus } from '@app/entities';
 import {
   BadRequestException,
   Injectable,
@@ -95,7 +89,7 @@ export class UsersService {
         user[k] = UserStatus.of(v);
       }
       if (k === 'role') {
-        user[k] = UserRole.of(v);
+        user[k] = Role.of(v);
       }
     });
     return this.updateUser(user);

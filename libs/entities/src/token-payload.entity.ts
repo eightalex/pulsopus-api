@@ -5,6 +5,7 @@ export class TokenPayload {
   username: User['username'];
   role: User['role'];
   status: User['status'];
+  isActive: User['isActive'];
 
   constructor(partial: Partial<TokenPayload>) {
     Object.assign(this, partial);
@@ -20,6 +21,7 @@ export class TokenPayload {
       username: user.username,
       role: user.role,
       status: user.status,
+      isActive: user.isActive,
     });
   }
 

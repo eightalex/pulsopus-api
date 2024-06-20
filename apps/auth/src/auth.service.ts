@@ -116,6 +116,9 @@ export class AuthService {
   }
 
   private async systemLogin(user: User): Promise<AuthResponseDto> {
+    if (user.isBlocked) {
+      throw new BadRequestException(`Forbidden. User blocked`);
+    }
     if (!user.isActive) {
       throw new ForbiddenException(`Forbidden. STATUS: ${user.status.value}`);
     }
@@ -166,7 +169,7 @@ export class AuthService {
       throw new BadRequestException('Request has already been sent!');
     }
     if (u.isActive) {
-      throw new BadRequestException('user has access!');
+      throw new BadRequestException('User already has access!');
     }
     const recipient = await this.usersService.getByEmail(dto.recipient);
     if (!recipient?.isAdmin) {

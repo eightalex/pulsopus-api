@@ -1,12 +1,9 @@
 import { Exclude, Expose, Transform } from 'class-transformer';
-import { AbstractEntity } from '@app/entities/abstract.entity';
+import { AbstractEntity, Activity, Department, Position } from '@app/entities';
 import { USER_GROUP } from '@app/entities/constants/groupsNames';
-import { Department } from '@app/entities/department.entity';
-import { Position } from '@app/entities/position.entity';
-import { UserActivity } from '@app/entities/user-activity.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { EUserRole, EUserStatus } from './constants';
-import { UserRole } from './role.entity';
+import { Role } from './role.entity';
 import { UserStatus } from './user-status.entity';
 
 export class User extends AbstractEntity {
@@ -14,7 +11,6 @@ export class User extends AbstractEntity {
 
   public username: string;
 
-  // @Expose({ groups: [USER_GROUP.AUTH] })
   public email: string;
 
   @Exclude({ toPlainOnly: true })
@@ -25,17 +21,18 @@ export class User extends AbstractEntity {
 
   public avatar: string;
 
-  @ApiProperty({ type: () => UserRole })
-  @Transform(({ value: role }: { value: UserRole }) => role.value)
-  public role: UserRole = UserRole.of(EUserRole.VIEWER);
+  @ApiProperty({ type: () => Role })
+  @Transform(({ value: role }: { value: Role }) => role.value)
+  @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
+  public role: Role = Role.of(EUserRole.VIEWER);
 
   @ApiProperty({ type: () => UserStatus })
-  @Expose({ groups: [USER_GROUP.FULL] })
+  @Expose({ groups: [USER_GROUP.LIST] })
   @Transform(({ value: status }: { value: UserStatus }) => status.value)
   public status: UserStatus;
 
   @ApiProperty({ type: () => Department })
-  @Expose({ groups: [USER_GROUP.FULL] })
+  @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
   @Transform(({ value: department }: { value: Department }) => {
     if (!department) return undefined;
     return {
@@ -46,7 +43,7 @@ export class User extends AbstractEntity {
   public department?: Department;
 
   @ApiProperty({ type: () => Position })
-  @Expose({ groups: [USER_GROUP.FULL] })
+  @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
   @Transform(({ value: position }: { value: Position }) => {
     if (!position) return undefined;
     return {
@@ -56,13 +53,13 @@ export class User extends AbstractEntity {
   })
   public position?: Position;
 
-  @Expose({ groups: [USER_GROUP.FULL] })
-  @ApiProperty({ type: () => [UserActivity] })
+  @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
+  @ApiProperty({ type: () => [Activity] })
   @Transform(({ value: activity }) =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    activity.map(({ ...data }: UserActivity) => data),
+    activity.map(({ ...data }: Activity) => data),
   )
-  public activity: UserActivity[] = [];
+  public activity: Activity[] = [];
 
   constructor(partial: Partial<User>) {
     super();
@@ -77,19 +74,28 @@ export class User extends AbstractEntity {
     return this.role.value === role;
   }
 
-  @Expose({ groups: [USER_GROUP.FULL] })
-  public get isActive(): boolean {
-    return this.status.value === EUserStatus.ACTIVE;
+  public isStatus(status: EUserStatus): boolean {
+    return this.status.value === status;
   }
 
-  @Expose({ groups: [USER_GROUP.FULL] })
+  @Expose({ groups: [USER_GROUP.LIST] })
   public get isPending(): boolean {
-    return this.status.value === EUserStatus.PENDING;
+    return this.isStatus(EUserStatus.PENDING);
   }
 
-  @Expose({ groups: [USER_GROUP.FULL] })
+  @Expose({ groups: [USER_GROUP.LIST] })
   public get isAdmin(): boolean {
     return this.isRole(EUserRole.ADMIN);
+  }
+
+  @Expose({ groups: [USER_GROUP.LIST] })
+  public get isBlocked(): boolean {
+    return this.isStatus(EUserStatus.BLOCKED);
+  }
+
+  @Expose({ groups: [USER_GROUP.LIST] })
+  public get isActive(): boolean {
+    return this.isStatus(EUserStatus.ACTIVE);
   }
 
   public _filter(filter: Record<string, string[]>): boolean {

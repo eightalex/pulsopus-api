@@ -1,7 +1,6 @@
 import { Expose, Transform } from 'class-transformer';
 import { v4 as uuidv4 } from 'uuid';
-import { AbstractEntity } from '@app/entities/abstract.entity';
-import { Activity } from '@app/entities/activity.entity';
+import { AbstractEntity, Activity } from '@app/entities';
 import { departmentNames } from '@app/entities/constants/names';
 import { User } from '@app/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
@@ -13,12 +12,12 @@ export class Department extends AbstractEntity {
   @ApiProperty({ enum: () => EDepartment })
   public value: EDepartment;
 
-  // @ApiProperty({ type: () => [Activity] })
-  // @Transform(({ value: activity }) =>
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   activity.map(({ ...data }: Activity) => data),
-  // )
-  // public activity: Activity[] = [];
+  @ApiProperty({ type: () => [Activity] })
+  @Transform(({ value: activity }) =>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    activity.map(({ ...data }: Activity) => data),
+  )
+  public activity: Activity[] = [];
 
   public users: User[] = [];
 
@@ -41,27 +40,5 @@ export class Department extends AbstractEntity {
   @Expose()
   public get label(): string {
     return this.value ? departmentNames[this.value] : this.value;
-  }
-
-  @Expose()
-  @ApiProperty({ type: () => [Activity] })
-  @Transform(({ value: activity }) =>
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    activity.map(({ ...data }: Activity) => data),
-  )
-  public get activity(): Activity[] {
-    const map = new Map();
-    this.users.forEach((u) =>
-      u.activity.forEach(({ date, value }) => {
-        const prevValue = map.get(date);
-        if (!prevValue) {
-          map.set(date, value);
-        } else {
-          const nextValue = value ? prevValue + value : prevValue;
-          map.set(date, nextValue);
-        }
-      }),
-    );
-    return [...map].map(([date, value]) => Activity.of(date, value));
   }
 }

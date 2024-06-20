@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AUTH_JWT_ACCESS_TYPE } from '@app/common';
 import { TokenPayload } from '@app/entities';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { AuthService } from '@/auth/src/auth.service';
@@ -23,6 +23,19 @@ export class JwtAccessStrategy extends PassportStrategy(
   }
 
   public async validate(payload: TokenPayload): Promise<TokenPayload> {
-    return this.authService.updateTokenPayloadByUserId(payload.sub);
+    try {
+      const tokenPayload = await this.authService.updateTokenPayloadByUserId(
+        payload.sub,
+      );
+      if (!tokenPayload) {
+        throw new Error('Unexpected exception. No token payload!');
+      }
+      if (!tokenPayload.isActive) {
+        throw new Error('Invalid user!');
+      }
+      return tokenPayload;
+    } catch (err) {
+      throw new UnauthorizedException(`Unauthorized. ${err.message}`);
+    }
   }
 }

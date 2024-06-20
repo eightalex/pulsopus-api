@@ -1,10 +1,10 @@
-import { USE_PUBLIC_KEY, USE_ROLES_KEY } from '@app/common';
+import { USE_PERMISSIONS_KEY, USE_PUBLIC_KEY } from '@app/common';
 import { EUserRole } from '@app/entities';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
-export class RoleGuard implements CanActivate {
+export class PermissionGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
   canActivate(context: ExecutionContext): boolean {
     const isPublic = this.reflector.getAllAndOverride<boolean>(USE_PUBLIC_KEY, [
@@ -14,14 +14,15 @@ export class RoleGuard implements CanActivate {
     if (isPublic) {
       return true;
     }
-    const requiredRoles = this.reflector.getAllAndOverride<EUserRole[]>(
-      USE_ROLES_KEY,
+    const requiredPermissions = this.reflector.getAllAndOverride<EUserRole[]>(
+      USE_PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
     );
-    if (!requiredRoles) {
+    if (!requiredPermissions || !requiredPermissions.length) {
       return true;
     }
-    const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.includes(user.role.value);
+    return true;
+    // const { user } = context.switchToHttp().getRequest();
+    // return requiredRoles.includes(user.role.value);
   }
 }

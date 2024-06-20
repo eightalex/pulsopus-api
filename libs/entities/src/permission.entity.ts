@@ -2,7 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { EUserRole } from './constants';
 
-export class Role {
+export class Permission {
   @ApiProperty({ enum: () => EUserRole })
   public value: EUserRole;
 
@@ -11,12 +11,12 @@ export class Role {
   @Exclude()
   private fromRole?: EUserRole;
 
-  constructor(partial: Partial<Role>) {
+  constructor(partial: Partial<Permission>) {
     Object.assign(this, partial);
   }
 
-  static of(role: EUserRole, fromRole?: EUserRole): Role {
-    const newRole = new Role({ value: role });
+  static of(role: EUserRole, fromRole?: EUserRole): Permission {
+    const newRole = new Permission({ value: role });
     if (fromRole) {
       newRole.fromRole = fromRole;
     }

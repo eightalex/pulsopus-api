@@ -4,9 +4,9 @@ import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.requ
 import {
   EUserRole,
   EUserStatus,
+  Role,
   User,
   USER_GROUP,
-  UserRole,
   UserStatus,
 } from '@app/entities';
 import {
@@ -24,12 +24,12 @@ import { UsersService } from './users.service';
 
 @ApiTags('users')
 @Controller('users')
-@SerializeOptions({ groups: [USER_GROUP.FULL] })
+@SerializeOptions({ groups: [USER_GROUP.LIST] })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  public async index(
+  public async getAllUsers(
     @Query(ValidationPipe) filter: UsersFilterRequestDto,
     @UserTokenRole() role: EUserRole,
   ): Promise<{ users: User[] }> {
@@ -37,13 +37,6 @@ export class UsersController {
       filter as Record<string, string[]>,
       role,
     );
-    return { users };
-  }
-
-  @Get('public')
-  @UsePublic()
-  public async usePublic(): Promise<{ users: User[] }> {
-    const users = await this.usersService.findAll();
     return { users };
   }
 
@@ -70,11 +63,20 @@ export class UsersController {
   @Get('roles')
   public async getUserRoles(
     @UserTokenRole() fromRole: EUserRole,
-  ): Promise<{ roles: UserRole[] }> {
+  ): Promise<{ roles: Role[] }> {
     const roles = Object.keys(EUserRole).map((k) =>
-      UserRole.of(k as EUserRole, fromRole),
+      Role.of(k as EUserRole, fromRole),
     );
     return { roles };
+  }
+
+  @Get(':id')
+  @UsePublic()
+  public async getUserById(
+    @Param() params: { id: User['id'] },
+  ): Promise<{ user: User }> {
+    const user = await this.usersService.getById(params.id);
+    return { user };
   }
 
   @UsePublic()

@@ -1,27 +1,47 @@
+import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from '@app/database/database.service';
 
 export class Repository<
   Type extends { id: string; createdAt: number; updatedAt: number },
 > {
-  private list: Type[] = [];
+  private map: Map<Type['id'], Type> = new Map();
   constructor(
-    private readonly initList: Map<Type['id'], Type>,
+    private readonly initialMap: Map<Type['id'], Type>,
     private readonly databaseService: DatabaseService,
   ) {
-    this.list = [...initList.values()];
+    // this.list = [...initialMap.values()];
+    this.map = new Map(initialMap);
   }
 
   private upd() {
     this.databaseService.computeData();
   }
 
+  private get generateId() {
+    return uuidv4();
+  }
+
+  private get list(): Type[] {
+    return [...this.map.values()];
+  }
+
+  public async findById(id: Type['id']): Promise<Type | undefined> {
+    return this.map.get(id);
+  }
+
   public async findBy(by: Partial<Type>): Promise<Type[]> {
+    if ('id' in by) {
+      const entity = await this.findById(by.id);
+      if (!entity) return [];
+      return [entity];
+    }
     return this.list.filter((u) =>
       Object.keys(by).every((k) => u[k] === by[k]),
     );
   }
 
   public async findOneBy(by: Partial<Type>): Promise<Type> {
+    if ('id' in by) return this.findById(by.id);
     return this.list.find((u) => Object.keys(by).every((k) => u[k] === by[k]));
   }
 
@@ -30,8 +50,14 @@ export class Repository<
   }
 
   public async create(entity: Type): Promise<Type> {
-    this.list = [...this.list, entity];
-    return entity;
+    const newEntity = {
+      id: this.generateId(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      ...entity,
+    };
+    this.map.set(newEntity.id, newEntity);
+    return newEntity;
   }
 
   public async updateOneBy(by: Partial<Type>, update: Type): Promise<Type> {
@@ -46,14 +72,15 @@ export class Repository<
   }
 
   public async update(update: Type): Promise<Type> {
-    let entity = null;
-    this.list.map((e) => {
-      update.updatedAt = Date.now();
-      if (e.id !== update.id) return e;
-      entity = update;
-      return update;
-    });
+    const entity = this.map.get(update.id);
+    if (!entity) return this.create(update);
+    const updated = {
+      ...entity,
+      ...update,
+      updatedAt: Date.now(),
+    };
+    this.map.set(updated.id, updated);
     this.upd();
-    return entity;
+    return updated;
   }
 }

@@ -1,14 +1,14 @@
 import * as moment from 'moment/moment';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  Activity,
   Department,
   EDepartment,
   EUserRole,
   EUserStatus,
   Position,
+  Role,
   User,
-  UserActivity,
-  UserRole,
   UserStatus,
 } from '@app/entities';
 import { IReaded } from './csv-user-data';
@@ -51,7 +51,7 @@ export const userMockByRoles = list.map((role) => {
     email: `${role.toLowerCase()}@pulsopus.dev`,
     password: 'password',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
-    role: UserRole.of(role),
+    role: Role.of(role),
     status: UserStatus.of(
       [role].includes(EUserRole.ADMIN)
         ? EUserStatus.ACTIVE
@@ -67,7 +67,7 @@ export const usersMock = [
     email: 'user@pulsopus.dev',
     password: 'password',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
-    role: UserRole.of(EUserRole.VIEWER),
+    role: Role.of(EUserRole.VIEWER),
     status: UserStatus.of(EUserStatus.INACTIVE),
   }),
 ];
@@ -86,12 +86,12 @@ export const createFromCsv = (r: IReaded) => {
     password: 'password',
     refreshToken: 'refreshToken',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
-    role: UserRole.of(EUserRole.VIEWER),
+    role: Role.of(EUserRole.VIEWER),
     status: UserStatus.of(EUserStatus.ACTIVE),
     department: Department.of(EDepartment.DEVELOPMENT),
     position: Position.ofLabel(r.position),
     activity: Object.entries(r.data).map(([date, v]) =>
-      UserActivity.of(
+      Activity.of(
         moment(date, 'DD-MM-YYYY').valueOf().toString(),
         Number(v || 0),
       ),

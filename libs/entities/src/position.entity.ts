@@ -9,7 +9,6 @@ const departmentLabels: Record<EPosition, string> = {
   [EPosition.QA_JUNIOR]: 'Junior QA',
   [EPosition.QA_LEAD]: 'QA Lead',
   [EPosition.PROJECT_MANAGER]: 'Project Manager',
-  [EPosition.UNKNOWN]: 'UNKNOWN',
 };
 
 export class Position extends AbstractEntity {

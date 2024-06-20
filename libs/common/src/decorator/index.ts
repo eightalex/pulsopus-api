@@ -1,4 +1,8 @@
 export { Cookies } from './cookies.decorator';
+export {
+  IPermissionRequiredRule,
+  UsePermissions,
+} from './use-permissions.decorator';
 export { UsePublic } from './use-public.decorator';
 export { UseRoles } from './use-roles.decorator';
 export { UserAuthorization, UserLoginToken } from './user-auth.decorator';

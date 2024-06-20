@@ -1,3 +1,4 @@
+export * from './casl';
 export * from './config';
 export * from './constants';
 export * from './decorator';
