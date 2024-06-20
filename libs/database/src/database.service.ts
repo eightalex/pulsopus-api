@@ -22,10 +22,10 @@ export class DatabaseService {
     const readedUserInstances = usrsReaded.map((r) => createFromCsv(r));
     // copy activity data
     const uMock = usersMock.map(
-      (u, i) =>
+      (u) =>
         new User({
           ...u,
-          activity: readedUserInstances[i].activity.map((a) =>
+          activity: readedUserInstances[0].activity.map((a) =>
             Activity.of(a.date, a.value),
           ),
         }),
@@ -34,7 +34,7 @@ export class DatabaseService {
       const prevAct = [];
       const currAct = [];
       const nextAct = [];
-      const diff = u.activity.length;
+      const diff = u.activity.length + 2;
       for (const act of u.activity) {
         const cD = moment(Number(act.date)).startOf('day').valueOf();
         const pD = moment(cD).subtract(diff, 'day').startOf('day').valueOf();
@@ -43,7 +43,7 @@ export class DatabaseService {
         prevAct.push(Activity.of(pD, act.value ? act.value * 0.8 : 0));
         nextAct.push(Activity.of(nD, act.value ? act.value * 1.1 : 0));
       }
-      const activity = [...prevAct, currAct, nextAct];
+      const activity = [...prevAct, ...currAct, ...nextAct];
       return new User({ ...u, activity });
     });
     //
@@ -94,7 +94,11 @@ export class DatabaseService {
     for (const d of this.departmentsValuesMap.values()) {
       const depActMap: Map<string, number> = new Map();
       d.users = d.users.map((u) => {
-        u.activity = u.activity.map(({ date, value }, index, activities) => {
+        u.activity = u.activity.map((activity, index, activities) => {
+          const { date, value = 0 } = activity;
+          if (!date) {
+            console.log('date', date);
+          }
           const cmpAct = actMap.get(date) || value;
           const rate = !value ? 0 : (value / cmpAct) * 100;
           const prevV = !index ? 0 : activities[index - 1].value;
@@ -109,11 +113,7 @@ export class DatabaseService {
       d.activity = [...depActMap.entries()].map(([date, value]) => {
         const cmpValue = companyActivityMap.get(date) || 0;
         const rate = !cmpValue || !value ? 0 : (value / cmpValue) * 100;
-        return new Activity({
-          date,
-          value,
-          rate,
-        });
+        return Activity.of(date, value, rate);
       });
       this.departmentsMap.set(d.id, d);
     }
