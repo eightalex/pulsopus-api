@@ -1,3 +1,4 @@
+import * as moment from 'moment/moment';
 import { Activity, Department, EDepartment, User } from '@app/entities';
 import { Injectable } from '@nestjs/common';
 import { CsvUserData } from './helpers/csv-user-data';
@@ -18,8 +19,35 @@ export class DatabaseService {
 
   private async createStockData() {
     const usrsReaded = await new CsvUserData().readFile();
-    const csvusrs = usrsReaded.map((r) => createFromCsv(r));
-    const usrs = [...csvusrs, ...usersMock];
+    const readedUserInstances = usrsReaded.map((r) => createFromCsv(r));
+    // copy activity data
+    const uMock = usersMock.map(
+      (u, i) =>
+        new User({
+          ...u,
+          activity: readedUserInstances[i].activity.map((a) =>
+            Activity.of(a.date, a.value),
+          ),
+        }),
+    );
+    const csvusrs = readedUserInstances.map((u) => {
+      const prevAct = [];
+      const currAct = [];
+      const nextAct = [];
+      const diff = u.activity.length;
+      for (const act of u.activity) {
+        const cD = moment(Number(act.date)).startOf('day').valueOf();
+        const pD = moment(cD).subtract(diff, 'day').startOf('day').valueOf();
+        const nD = moment(cD).add(diff, 'day').startOf('day').valueOf();
+        currAct.push(act);
+        prevAct.push(Activity.of(pD, act.value ? act.value * 0.8 : 0));
+        nextAct.push(Activity.of(nD, act.value ? act.value * 1.1 : 0));
+      }
+      const activity = [...prevAct, currAct, nextAct];
+      return new User({ ...u, activity });
+    });
+    //
+    const usrs = [...csvusrs, ...uMock];
     for (const usr of usrs) {
       this.usersMap.set(usr.id, usr);
     }
