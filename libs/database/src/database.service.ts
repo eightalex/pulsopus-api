@@ -1,4 +1,5 @@
 import * as moment from 'moment/moment';
+import { v4 as uuidv4 } from 'uuid';
 import { Activity, Department, EDepartment, User } from '@app/entities';
 import { Injectable } from '@nestjs/common';
 import { CsvUserData } from './helpers/csv-user-data';
@@ -20,16 +21,16 @@ export class DatabaseService {
   private async createStockData() {
     const usrsReaded = await new CsvUserData().readFile();
     const readedUserInstances = usrsReaded.map((r) => createFromCsv(r));
+    // ---------------------------------------------
     // copy activity data
     const uMock = usersMock.map(
       (u) =>
         new User({
           ...u,
-          activity: readedUserInstances[0].activity.map((a) =>
-            Activity.of(a.date, a.value),
-          ),
+          activity: [],
         }),
     );
+    //
     const csvusrs = readedUserInstances.map((u) => {
       const prevAct = [];
       const currAct = [];
@@ -40,14 +41,49 @@ export class DatabaseService {
         const pD = moment(cD).subtract(diff, 'day').startOf('day').valueOf();
         const nD = moment(cD).add(diff, 'day').startOf('day').valueOf();
         currAct.push(act);
-        prevAct.push(Activity.of(pD, act.value ? act.value * 0.8 : 0));
-        nextAct.push(Activity.of(nD, act.value ? act.value * 1.1 : 0));
+        prevAct.push(Activity.of(pD, act.value ? act.value * 0.3 : 0));
+        nextAct.push(Activity.of(nD, act.value ? act.value * 1.3 : 0));
       }
       const activity = [...prevAct, ...currAct, ...nextAct];
       return new User({ ...u, activity });
     });
     //
-    const usrs = [...csvusrs, ...uMock];
+    const designDepartmentUsers = [...csvusrs].splice(0, 4).map((u) => {
+      return new User({
+        ...u,
+        id: uuidv4(),
+        username: `Design ${u.username}`,
+        email: `d-${u.email}`,
+        department: Department.of(EDepartment.DESIGN),
+        activity: u.activity
+          .filter((a) => !!a && !!a.date)
+          .map((a) => {
+            return Activity.of(a.date, a.value * 0.3);
+          }),
+      });
+    });
+    const productDepartmentUsers = [...csvusrs].splice(4).map((u) => {
+      return new User({
+        ...u,
+        id: uuidv4(),
+        username: `Product ${u.username}`,
+        email: `p-${u.email}`,
+        department: Department.of(EDepartment.PRODUCT),
+        activity: u.activity
+          .filter((a) => !!a && !!a.date)
+          .map((a) => {
+            return Activity.of(a.date, a.value * 0.2);
+          }),
+      });
+    });
+    //
+    const usrs = [
+      ...csvusrs,
+      ...designDepartmentUsers,
+      ...productDepartmentUsers,
+      ...uMock,
+    ];
+    // ---------------------------------------------
     for (const usr of usrs) {
       this.usersMap.set(usr.id, usr);
     }
