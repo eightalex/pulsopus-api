@@ -42,7 +42,7 @@ export class DatabaseService {
         const pD = moment(cD).subtract(diff, 'day').startOf('day').valueOf();
         const nD = moment(cD).add(diff, 'day').startOf('day').valueOf();
         const cV = Number(act.value) || 0;
-        const pV = cV * _.random(0.8, 1.2);
+        const pV = cV * _.random(0.8, 1.3);
         const nV = cV * _.random(0.1, 1.3);
         currAct.push(Activity.of(cD, cV));
         prevAct.push(Activity.of(pD, pV));
@@ -52,11 +52,12 @@ export class DatabaseService {
       return new User({ ...u, activity });
     });
     //
+    const nameSplit = (name, prefix) => `${prefix} ${name.split(' ')[0]}`;
     const designDepartmentUsers = [...csvusrs].map((u) => {
       return new User({
         ...u,
         id: uuidv4(),
-        username: `Design ${u.username}`,
+        username: nameSplit(u.username, 'design'),
         email: `d-${u.email}`,
         department: Department.of(EDepartment.DESIGN),
         activity: u.activity
@@ -70,13 +71,27 @@ export class DatabaseService {
       return new User({
         ...u,
         id: uuidv4(),
-        username: `Product ${u.username}`,
+        username: nameSplit(u.username, 'product'),
         email: `p-${u.email}`,
         department: Department.of(EDepartment.PRODUCT),
         activity: u.activity
           .filter((a) => !!a && !!a.date)
           .map((a) => {
-            return Activity.of(a.date, Number(a.value) * _.random(0, 0.3));
+            return Activity.of(a.date, Number(a.value) * _.random(0.2, 0.4));
+          }),
+      });
+    });
+    const marketingDepartmentUsers = [...csvusrs].map((u) => {
+      return new User({
+        ...u,
+        id: uuidv4(),
+        username: nameSplit(u.username, 'marketing'),
+        email: `m-${u.email}`,
+        department: Department.of(EDepartment.MARKETING),
+        activity: u.activity
+          .filter((a) => !!a && !!a.date)
+          .map((a) => {
+            return Activity.of(a.date, _.random(0, 60));
           }),
       });
     });
@@ -85,6 +100,7 @@ export class DatabaseService {
       ...csvusrs,
       ...designDepartmentUsers,
       ...productDepartmentUsers,
+      ...marketingDepartmentUsers,
       ...uMock,
     ];
     // ---------------------------------------------
