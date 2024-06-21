@@ -45,9 +45,10 @@ export const rowParser = (row) => {
 };
 
 export const userMockByRoles = list.map((role) => {
+  const username = `dev ${[role].map((s) => s.toLowerCase()).join(' ')}`;
   return new User({
     id: uuidv4(),
-    username: [role].map((s) => s.toLowerCase()).join(' '),
+    username,
     email: `${role.toLowerCase()}@pulsopus.dev`,
     password: 'password',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
@@ -63,7 +64,7 @@ export const usersMock = [
   ...userMockByRoles,
   new User({
     id: uuidv4(),
-    username: 'user',
+    username: 'dev user',
     email: 'user@pulsopus.dev',
     password: 'password',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',

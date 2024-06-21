@@ -121,8 +121,9 @@ export class DatabaseService {
   }
 
   public computeData() {
-    const OLD_companyActivityMap: Map<string, number> = new Map();
+    const usersNameIds = new Map<string, string>();
     for (const [userId, user] of this.usersMap) {
+      usersNameIds.set(user.username, userId);
       user.department =
         this.departmentsValuesMap.get(user.department?.value) || undefined;
       this.usersMap.set(userId, user);
@@ -134,13 +135,6 @@ export class DatabaseService {
       if (user.department) {
         user.department.users.push(user);
       }
-
-      user.activity.forEach(({ date, value }) => {
-        const d = Number(date).toString();
-        const compDayAct = OLD_companyActivityMap.get(d) || 0;
-        const newValue = Number(compDayAct) + Number(value) || 0;
-        OLD_companyActivityMap.set(d, newValue);
-      });
     }
 
     const departmentActivitiesMap: Map<
@@ -174,6 +168,7 @@ export class DatabaseService {
         });
         const newUser = new User({
           ...u,
+          id: usersNameIds.get(u.username),
         });
         this.usersMap.set(newUser.id, newUser);
         return newUser;
@@ -186,6 +181,13 @@ export class DatabaseService {
       });
       this.departmentsMap.set(d.id, d);
     }
+
+    this.usersMap = new Map(
+      [...this.usersMap.values()].map((u, i) => {
+        const id = (usersNameIds[u.username] as string) || i.toString();
+        return [id, new User({ ...u, id })];
+      }),
+    );
   }
 
   private createRepository() {
