@@ -1,4 +1,5 @@
-import * as moment from 'moment/moment';
+import * as _ from 'lodash';
+import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { Activity, Department, EDepartment, User } from '@app/entities';
 import { Injectable } from '@nestjs/common';
@@ -41,8 +42,8 @@ export class DatabaseService {
         const pD = moment(cD).subtract(diff, 'day').startOf('day').valueOf();
         const nD = moment(cD).add(diff, 'day').startOf('day').valueOf();
         const cV = Number(act.value) || 0;
-        const pV = cV * 0.8;
-        const nV = cV * 0.3;
+        const pV = cV * _.random(0.8, 1.2);
+        const nV = cV * _.random(0.1, 1.3);
         currAct.push(Activity.of(cD, cV));
         prevAct.push(Activity.of(pD, pV));
         nextAct.push(Activity.of(nD, nV));
@@ -61,7 +62,7 @@ export class DatabaseService {
         activity: u.activity
           .filter((a) => !!a && !!a.date)
           .map((a) => {
-            return Activity.of(a.date, Number(a.value) * 0.3);
+            return Activity.of(a.date, Number(a.value) * _.random(0.1, 0.8));
           }),
       });
     });
@@ -75,7 +76,7 @@ export class DatabaseService {
         activity: u.activity
           .filter((a) => !!a && !!a.date)
           .map((a) => {
-            return Activity.of(a.date, Number(a.value) * 0.2);
+            return Activity.of(a.date, Number(a.value) * _.random(0, 0.3));
           }),
       });
     });
