@@ -122,8 +122,9 @@ export class DatabaseService {
 
   public computeData() {
     const usersNameIds = new Map<string, string>();
+    let count = 0;
+    const step = 1;
     for (const [userId, user] of this.usersMap) {
-      usersNameIds.set(user.username, userId);
       user.department =
         this.departmentsValuesMap.get(user.department?.value) || undefined;
       this.usersMap.set(userId, user);
@@ -135,6 +136,10 @@ export class DatabaseService {
       if (user.department) {
         user.department.users.push(user);
       }
+
+      const newId = (count + step).toString();
+      usersNameIds.set(user.username, newId);
+      count++;
     }
 
     const departmentActivitiesMap: Map<
@@ -158,6 +163,7 @@ export class DatabaseService {
 
     for (const d of this.departmentsValuesMap.values()) {
       d.users = d.users.map((u) => {
+        u.id = usersNameIds.get(u.username);
         u.activity = u.activity.map((activity, index, activities) => {
           const { date, value = 0 } = activity;
           const cmpAct = companyActivityMap.get(date) || value;
@@ -166,12 +172,8 @@ export class DatabaseService {
           const trend = value - prevV;
           return Activity.of(date, value, rate, trend);
         });
-        const newUser = new User({
-          ...u,
-          id: usersNameIds.get(u.username),
-        });
-        this.usersMap.set(newUser.id, newUser);
-        return newUser;
+        this.usersMap.set(u.id, u);
+        return u;
       });
       const depActMap = departmentActivitiesMap.get(d.value);
       d.activity = [...depActMap.entries()].map(([date, value]) => {
@@ -181,21 +183,14 @@ export class DatabaseService {
       });
       this.departmentsMap.set(d.id, d);
     }
-
-    this.usersMap = new Map(
-      [...this.usersMap.values()].map((u, i) => {
-        const id = (usersNameIds[u.username] as string) || i.toString();
-        return [id, new User({ ...u, id })];
-      }),
-    );
   }
 
   private createRepository() {
-    this.userRepository = new Repository<User>(this.usersMap, this);
     this.departmentRepository = new Repository<Department>(
       this.departmentsMap,
       this,
     );
+    this.userRepository = new Repository<User>(this.usersMap, this);
   }
 
   private async initial() {
