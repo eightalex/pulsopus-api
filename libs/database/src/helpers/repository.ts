@@ -51,7 +51,7 @@ export class Repository<
 
   public async create(entity: Type): Promise<Type> {
     const newEntity = {
-      id: this.generateId(),
+      id: this.generateId,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       ...entity,

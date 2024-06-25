@@ -19,6 +19,16 @@ export class DatabaseService {
     this.initial();
   }
 
+  private calcTrend(value: number, prevValue: number): number {
+    if (!value && !prevValue) return 0;
+    if (!value) return -100;
+    if (!prevValue) return 100;
+    const cV = Math.max(Number(value), 1);
+    const pV = Math.max(Number(prevValue), 1);
+    const diffAbsolute = cV / pV;
+    return cV >= pV ? (diffAbsolute - 1) * 100 : (1 - diffAbsolute) * -100;
+  }
+
   private async createStockData() {
     const usrsReaded = await new CsvUserData().readFile();
     const readedUserInstances = usrsReaded.map((r) => createFromCsv(r));
@@ -42,8 +52,8 @@ export class DatabaseService {
         const pD = moment(cD).subtract(diff, 'day').startOf('day').valueOf();
         const nD = moment(cD).add(diff, 'day').startOf('day').valueOf();
         const cV = Number(act.value) || 0;
-        const pV = cV * _.random(0.8, 1.3);
-        const nV = cV * _.random(0.1, 1.3);
+        const pV = (cV || 1) * _.random(0.8, 1.3);
+        const nV = (cV || 1) * _.random(0.1, 1.3);
         currAct.push(Activity.of(cD, cV));
         prevAct.push(Activity.of(pD, pV));
         nextAct.push(Activity.of(nD, nV));
@@ -169,17 +179,22 @@ export class DatabaseService {
           const cmpAct = companyActivityMap.get(date) || value;
           const rate = !value ? 0 : (value / cmpAct) * 100;
           const prevV = !index ? 0 : activities[index - 1].value;
-          const trend = value - prevV;
+          const trend = this.calcTrend(value, prevV);
           return Activity.of(date, value, rate, trend);
         });
         this.usersMap.set(u.id, u);
         return u;
       });
       const depActMap = departmentActivitiesMap.get(d.value);
-      d.activity = [...depActMap.entries()].map(([date, value]) => {
+      d.activity = [...depActMap.entries()].map(([date, value], index, arr) => {
         const cmpValue = companyActivityMap.get(date) || 0;
         const rate = !(cmpValue && value) ? 0 : (value / cmpValue) * 100;
-        return Activity.of(date, value, rate);
+        return Activity.of(
+          date,
+          value,
+          rate,
+          this.calcTrend(value, !index ? 0 : arr[index - 1][1]),
+        );
       });
       this.departmentsMap.set(d.id, d);
     }
