@@ -2,22 +2,21 @@ export enum EUserStatus {
   PENDING = 'PENDING',
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
-  BLOCKED = 'BLOCKED',
+  DELETED = 'DELETED',
 }
 
 export enum EUserRole {
   VIEWER = 'VIEWER',
-  MANAGER = 'MANAGER',
   ADMIN = 'ADMIN',
 }
 export enum EDepartment {
   COMPANY = 'COMPANY',
   DEVELOPMENT = 'DEVELOPMENT',
-  ADMINISTRATION = 'ADMINISTRATION',
-  DESIGN = 'DESIGN',
-  PRODUCT = 'PRODUCT',
-  MARKETING = 'MARKETING',
+  QA = 'QA',
   HR = 'HR',
+  DESIGN = 'DESIGN',
+  DEV_OPS = 'DEV_OPS',
+  PROJECT_MANAGER = 'PROJECT_MANAGER',
 }
 
 export enum EPosition {

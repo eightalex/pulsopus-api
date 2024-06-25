@@ -89,8 +89,8 @@ export class User extends AbstractEntity {
   }
 
   @Expose({ groups: [USER_GROUP.LIST] })
-  public get isBlocked(): boolean {
-    return this.isStatus(EUserStatus.BLOCKED);
+  public get isDeleted(): boolean {
+    return this.isStatus(EUserStatus.DELETED);
   }
 
   @Expose({ groups: [USER_GROUP.LIST] })
@@ -118,8 +118,6 @@ export class User extends AbstractEntity {
     switch (role) {
       case EUserRole.VIEWER:
         return this.isActive;
-      case EUserRole.MANAGER:
-        return !this.isPending;
       case EUserRole.ADMIN:
         return true;
       default:

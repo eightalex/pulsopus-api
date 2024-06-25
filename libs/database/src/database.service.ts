@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { v4 as uuidv4 } from 'uuid';
 import { Activity, Department, EDepartment, User } from '@app/entities';
 import { Injectable } from '@nestjs/common';
 import { CsvUserData } from './helpers/csv-user-data';
@@ -62,57 +61,7 @@ export class DatabaseService {
       return new User({ ...u, activity });
     });
     //
-    const nameSplit = (name, prefix) => `${prefix} ${name.split(' ')[0]}`;
-    const designDepartmentUsers = [...csvusrs].map((u) => {
-      return new User({
-        ...u,
-        id: uuidv4(),
-        username: nameSplit(u.username, 'design'),
-        email: `d-${u.email}`,
-        department: Department.of(EDepartment.DESIGN),
-        activity: u.activity
-          .filter((a) => !!a && !!a.date)
-          .map((a) => {
-            return Activity.of(a.date, Number(a.value) * _.random(0.1, 0.8));
-          }),
-      });
-    });
-    const productDepartmentUsers = [...csvusrs].map((u) => {
-      return new User({
-        ...u,
-        id: uuidv4(),
-        username: nameSplit(u.username, 'product'),
-        email: `p-${u.email}`,
-        department: Department.of(EDepartment.PRODUCT),
-        activity: u.activity
-          .filter((a) => !!a && !!a.date)
-          .map((a) => {
-            return Activity.of(a.date, Number(a.value) * _.random(0.2, 0.4));
-          }),
-      });
-    });
-    const marketingDepartmentUsers = [...csvusrs].map((u) => {
-      return new User({
-        ...u,
-        id: uuidv4(),
-        username: nameSplit(u.username, 'marketing'),
-        email: `m-${u.email}`,
-        department: Department.of(EDepartment.MARKETING),
-        activity: u.activity
-          .filter((a) => !!a && !!a.date)
-          .map((a) => {
-            return Activity.of(a.date, _.random(0, 60));
-          }),
-      });
-    });
-    //
-    const usrs = [
-      ...csvusrs,
-      ...designDepartmentUsers,
-      ...productDepartmentUsers,
-      ...marketingDepartmentUsers,
-      ...uMock,
-    ];
+    const usrs = [...csvusrs, ...uMock];
     // ---------------------------------------------
     for (const usr of usrs) {
       this.usersMap.set(usr.id, usr);
@@ -130,7 +79,7 @@ export class DatabaseService {
     return departments;
   }
 
-  public computeData() {
+  private computeData() {
     const usersNameIds = new Map<string, string>();
     let count = 0;
     const step = 1;
@@ -208,9 +157,20 @@ export class DatabaseService {
     this.userRepository = new Repository<User>(this.usersMap, this);
   }
 
+  private updateRepository() {
+    this.departmentRepository.setInitial(this.departmentsMap);
+    this.userRepository.setInitial(this.usersMap);
+  }
+
   private async initial() {
     await this.createStockData();
     this.computeData();
     this.createRepository();
+  }
+
+  public rebuildData() {
+    this.usersMap = this.userRepository.mapState;
+    this.computeData();
+    this.updateRepository();
   }
 }

@@ -1,10 +1,16 @@
-import { UsePublic, UseRoles, UserTokenRole } from '@app/common';
+import {
+  UsePublic,
+  UseRoles,
+  UserTokenPayload,
+  UserTokenRole,
+} from '@app/common';
 import { UsersFilterRequestDto } from '@app/dto/users/users-filter.request.dto';
 import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
 import {
   EUserRole,
   EUserStatus,
   Role,
+  TokenPayload,
   User,
   USER_GROUP,
   UserStatus,
@@ -12,7 +18,10 @@ import {
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Put,
   Query,
@@ -77,6 +86,17 @@ export class UsersController {
   ): Promise<{ user: User }> {
     const user = await this.usersService.getById(params.id);
     return { user };
+  }
+
+  @Delete()
+  @UsePublic()
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  public async deleteUserById(
+    @Body() params: { id: User['id'] },
+    @UserTokenPayload() tokenPayload: TokenPayload,
+  ): Promise<TokenPayload> {
+    console.log('tokenPayload', tokenPayload);
+    return tokenPayload;
   }
 
   @UsePublic()

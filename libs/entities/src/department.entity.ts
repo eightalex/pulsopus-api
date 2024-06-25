@@ -1,7 +1,7 @@
 import { Expose, Transform } from 'class-transformer';
 import { v4 as uuidv4 } from 'uuid';
 import { AbstractEntity, Activity } from '@app/entities';
-import { departmentNames } from '@app/entities/constants/names';
+import { departmentNamesMap } from '@app/entities/constants/names';
 import { User } from '@app/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { EDepartment } from './constants';
@@ -39,6 +39,6 @@ export class Department extends AbstractEntity {
 
   @Expose()
   public get label(): string {
-    return this.value ? departmentNames[this.value] : this.value;
+    return this.value ? departmentNamesMap.get(this.value) : this.value;
   }
 }

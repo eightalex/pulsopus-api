@@ -25,14 +25,10 @@ const list = Object.keys(EUserRole).map(
 );
 
 export const rowParser = (row) => {
-  return Object.entries(row).reduce((acc, [k, v]) => {
+  return Object.entries(row).reduce((acc, [k, v = '']) => {
     const keys = ['name', 'position', 'department'];
     if (keys.includes(k.trim().toLowerCase())) {
       acc[k.trim().toLowerCase()] = (v as string).trim();
-      return acc;
-    }
-    if (k === 'Department') {
-      acc[k] = v;
       return acc;
     }
     const d = acc.data || {};
@@ -73,9 +69,20 @@ export const usersMock = [
   }),
 ];
 
+const departmentsValuesMap: Map<string, EDepartment> = new Map([
+  ['QA', EDepartment.QA],
+  ['HR', EDepartment.HR],
+  ['UI/UX Design', EDepartment.DESIGN],
+  ['Development', EDepartment.DEVELOPMENT],
+  ['DevOps', EDepartment.DEV_OPS],
+  ['Project Management', EDepartment.PROJECT_MANAGER],
+]);
 export const createFromCsv = (r: IReaded) => {
+  const dep = departmentsValuesMap.get(
+    r.department.replace('department', '').trim(),
+  );
   const id = uuidv4();
-  const createdAt = moment('09.04.2024', 'DD.MM.YYYY').valueOf();
+  const createdAt = moment().startOf('day').valueOf();
   return new User({
     id,
     username: r.name,
@@ -89,7 +96,7 @@ export const createFromCsv = (r: IReaded) => {
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
     role: Role.of(EUserRole.VIEWER),
     status: UserStatus.of(EUserStatus.ACTIVE),
-    department: Department.of(EDepartment.DEVELOPMENT),
+    department: Department.of(dep),
     position: Position.ofLabel(r.position),
     activity: Object.entries(r.data).map(([date, v]) =>
       Activity.of(

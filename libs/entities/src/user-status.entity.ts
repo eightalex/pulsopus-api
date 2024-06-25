@@ -23,15 +23,13 @@ export class UserStatus {
 
   @Expose()
   public get canSetted(): boolean {
+    const excludeEditedRoles = [EUserStatus.PENDING, EUserStatus.DELETED];
     let includesRole = [];
     if (this.fromRole && this.fromRole === EUserRole.ADMIN) {
       includesRole = Object.keys(EUserStatus).reduce((acc, k: EUserStatus) => {
-        if (k === EUserStatus.PENDING) return acc;
+        if (excludeEditedRoles.includes(k)) return acc;
         return [...acc, EUserStatus[k]];
       }, []);
-    }
-    if (this.fromRole && this.fromRole === EUserRole.MANAGER) {
-      includesRole = [EUserStatus.ACTIVE];
     }
     return includesRole.includes(this.value);
   }

@@ -116,7 +116,7 @@ export class AuthService {
   }
 
   private async systemLogin(user: User): Promise<AuthResponseDto> {
-    if (user.isBlocked) {
+    if (user.isDeleted) {
       throw new BadRequestException(`Forbidden. User blocked`);
     }
     if (!user.isActive) {

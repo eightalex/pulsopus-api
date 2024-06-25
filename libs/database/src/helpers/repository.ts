@@ -4,17 +4,24 @@ import { DatabaseService } from '@app/database/database.service';
 export class Repository<
   Type extends { id: string; createdAt: number; updatedAt: number },
 > {
-  private map: Map<Type['id'], Type> = new Map();
+  private stateMap: Map<Type['id'], Type> = new Map();
   constructor(
-    private readonly initialMap: Map<Type['id'], Type>,
+    private readonly initialState: Map<Type['id'], Type>,
     private readonly databaseService: DatabaseService,
   ) {
     // this.list = [...initialMap.values()];
-    this.map = new Map(initialMap);
+    this.setInitial(initialState);
+  }
+
+  public setInitial(initialMap: Map<Type['id'], Type>) {
+    this.stateMap = new Map(initialMap);
+  }
+  public get mapState(): Map<Type['id'], Type> {
+    return this.stateMap;
   }
 
   private upd() {
-    this.databaseService.computeData();
+    // this.databaseService.rebuildData();
   }
 
   private get generateId() {
@@ -22,11 +29,11 @@ export class Repository<
   }
 
   private get list(): Type[] {
-    return [...this.map.values()];
+    return [...this.stateMap.values()];
   }
 
   public async findById(id: Type['id']): Promise<Type | undefined> {
-    return this.map.get(id);
+    return this.stateMap.get(id);
   }
 
   public async findBy(by: Partial<Type>): Promise<Type[]> {
@@ -56,7 +63,7 @@ export class Repository<
       updatedAt: Date.now(),
       ...entity,
     };
-    this.map.set(newEntity.id, newEntity);
+    this.stateMap.set(newEntity.id, newEntity);
     return newEntity;
   }
 
@@ -72,14 +79,14 @@ export class Repository<
   }
 
   public async update(update: Type): Promise<Type> {
-    const entity = this.map.get(update.id);
+    const entity = this.stateMap.get(update.id);
     if (!entity) return this.create(update);
     const updated = {
       ...entity,
       ...update,
       updatedAt: Date.now(),
     };
-    this.map.set(updated.id, updated);
+    this.stateMap.set(updated.id, updated);
     this.upd();
     return updated;
   }
