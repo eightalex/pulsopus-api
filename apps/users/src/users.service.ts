@@ -1,8 +1,17 @@
 import { DatabaseService } from '@app/database/database.service';
+import { UsersDeleteRequestDto } from '@app/dto';
 import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
-import { EUserRole, EUserStatus, Role, User, UserStatus } from '@app/entities';
+import {
+  EUserRole,
+  EUserStatus,
+  Role,
+  TokenPayload,
+  User,
+  UserStatus,
+} from '@app/entities';
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,7 +20,7 @@ import {
 export class UsersService {
   constructor(private readonly db: DatabaseService) {}
 
-  public async getById(id: User['id']) {
+  public async getById(id: User['id']): Promise<User> {
     const user = await this.db.userRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -93,5 +102,16 @@ export class UsersService {
       }
     });
     return this.updateUser(user);
+  }
+
+  public async deleteUsers(
+    params: UsersDeleteRequestDto,
+    tokePayload: TokenPayload,
+  ): Promise<void> {
+    const u = await this.getById(tokePayload.sub);
+    if (!u || !u.isActive || !u.isAdmin) {
+      throw new ForbiddenException('No permission');
+    }
+    await this.db.userRepository.remove(params.ids);
   }
 }

@@ -54,8 +54,8 @@ export class DatabaseService {
         const pV = (cV || 1) * _.random(0.8, 1.3);
         const nV = (cV || 1) * _.random(0.1, 1.3);
         currAct.push(Activity.of(cD, cV));
-        prevAct.push(Activity.of(pD, pV));
-        nextAct.push(Activity.of(nD, nV));
+        // prevAct.push(Activity.of(pD, pV));
+        // nextAct.push(Activity.of(nD, nV));
       }
       const activity = [...prevAct, ...currAct, ...nextAct];
       return new User({ ...u, activity });

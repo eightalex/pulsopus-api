@@ -32,9 +32,15 @@ export const rowParser = (row) => {
       return acc;
     }
     const d = acc.data || {};
+    const regexp = /\D/gm;
+    let dV = v.toString().includes('.')
+      ? Number(v).toFixed(3).toString()
+      : v.toString();
+    dV = dV.replace(regexp, '');
+    dV = !dV ? '0' : dV;
     acc.data = {
       ...d,
-      [k]: v,
+      [k]: dV,
     };
     return acc;
   }, {} as any);

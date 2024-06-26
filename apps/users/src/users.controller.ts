@@ -4,8 +4,11 @@ import {
   UserTokenPayload,
   UserTokenRole,
 } from '@app/common';
-import { UsersFilterRequestDto } from '@app/dto/users/users-filter.request.dto';
-import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
+import {
+  UsersDeleteRequestDto,
+  UsersFilterRequestDto,
+  UsersUpdateBodyRequestDto,
+} from '@app/dto';
 import {
   EUserRole,
   EUserStatus,
@@ -89,14 +92,12 @@ export class UsersController {
   }
 
   @Delete()
-  @UsePublic()
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  public async deleteUserById(
-    @Body() params: { id: User['id'] },
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async deleteUserByIds(
+    @Query() params: UsersDeleteRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
-  ): Promise<TokenPayload> {
-    console.log('tokenPayload', tokenPayload);
-    return tokenPayload;
+  ): Promise<void> {
+    return this.usersService.deleteUsers(params, tokenPayload);
   }
 
   @UsePublic()

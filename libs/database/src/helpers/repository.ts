@@ -48,7 +48,7 @@ export class Repository<
   }
 
   public async findOneBy(by: Partial<Type>): Promise<Type> {
-    if ('id' in by) return this.findById(by.id);
+    // if ('id' in by) return this.findById(by.id);
     return this.list.find((u) => Object.keys(by).every((k) => u[k] === by[k]));
   }
 
@@ -89,5 +89,11 @@ export class Repository<
     this.stateMap.set(updated.id, updated);
     this.upd();
     return updated;
+  }
+  public async remove(ids: Type['id'][]): Promise<void> {
+    ids.forEach((id) => {
+      this.stateMap.delete(id);
+    });
+    this.upd();
   }
 }
