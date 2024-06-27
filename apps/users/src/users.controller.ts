@@ -12,7 +12,6 @@ import {
 import {
   EUserRole,
   EUserStatus,
-  Role,
   TokenPayload,
   User,
   USER_GROUP,
@@ -75,9 +74,11 @@ export class UsersController {
   @Get('roles')
   public async getUserRoles(
     @UserTokenRole() fromRole: EUserRole,
-  ): Promise<{ roles: Role[] }> {
-    const roles = Object.keys(EUserRole).map((k) =>
-      Role.of(k as EUserRole, fromRole),
+  ): Promise<{ roles: EUserRole[] }> {
+    const roles = Object.keys(EUserRole).map(
+      (k) =>
+        // Role.of(k as EUserRole, fromRole),
+        EUserRole[k],
     );
     return { roles };
   }

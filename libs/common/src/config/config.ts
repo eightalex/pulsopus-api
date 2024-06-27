@@ -20,6 +20,9 @@ class EnvironmentVariables {
   HOST_AUTH: string;
   @IsString()
   HOST_DEPARTMENTS: string;
+
+  @IsString()
+  MONGODB_URI: string;
 }
 
 export const validateConfig = (config: Record<string, unknown>) => {
@@ -56,6 +59,15 @@ export default (): Record<string, unknown> => ({
   database: {
     host: process.env.DATABASE_HOST,
     port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+  },
+  db: {
+    mongo: {
+      uri: process.env.MONGODB_URI,
+    },
+    pg: {
+      host: process.env.DATABASE_HOST,
+      port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+    },
   },
   secret: {
     access: {

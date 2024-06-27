@@ -4,7 +4,6 @@ import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.requ
 import {
   EUserRole,
   EUserStatus,
-  Role,
   TokenPayload,
   User,
   UserStatus,
@@ -98,7 +97,7 @@ export class UsersService {
         user[k] = UserStatus.of(v);
       }
       if (k === 'role') {
-        user[k] = Role.of(v);
+        user[k] = EUserRole[v];
       }
     });
     return this.updateUser(user);

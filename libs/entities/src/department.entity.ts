@@ -1,12 +1,12 @@
 import { Expose, Transform } from 'class-transformer';
 import { v4 as uuidv4 } from 'uuid';
-import { AbstractEntity, Activity } from '@app/entities';
+import { Activity } from '@app/entities';
 import { departmentNamesMap } from '@app/entities/constants/names';
 import { User } from '@app/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { EDepartment } from './constants';
 
-export class Department extends AbstractEntity {
+export class Department {
   public id: string;
 
   @ApiProperty({ enum: () => EDepartment })
@@ -22,7 +22,6 @@ export class Department extends AbstractEntity {
   public users: User[] = [];
 
   constructor(partial: Partial<Department>) {
-    super();
     Object.assign(this, partial);
   }
 

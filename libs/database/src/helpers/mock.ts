@@ -7,7 +7,6 @@ import {
   EUserRole,
   EUserStatus,
   Position,
-  Role,
   User,
   UserStatus,
 } from '@app/entities';
@@ -49,29 +48,28 @@ export const rowParser = (row) => {
 export const userMockByRoles = list.map((role) => {
   const username = `dev ${[role].map((s) => s.toLowerCase()).join(' ')}`;
   return new User({
-    id: uuidv4(),
+    // id: uuidv4(),
     username,
     email: `${role.toLowerCase()}@pulsopus.dev`,
     password: 'password',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
-    role: Role.of(role),
-    status: UserStatus.of(
-      [role].includes(EUserRole.ADMIN)
-        ? EUserStatus.ACTIVE
-        : EUserStatus.INACTIVE,
-    ),
+    // role: EUserRole.VIEWER,
+    // status: UserStatus.of(
+    //   [role].includes(EUserRole.ADMIN)
+    //     ? EUserStatus.ACTIVE
+    //     : EUserStatus.INACTIVE,
+    // ),
   });
 });
 export const usersMock = [
   ...userMockByRoles,
   new User({
-    id: uuidv4(),
+    // id: uuidv4(),
     username: 'dev user',
     email: 'user@pulsopus.dev',
     password: 'password',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
-    role: Role.of(EUserRole.VIEWER),
-    status: UserStatus.of(EUserStatus.INACTIVE),
+    // status: UserStatus.of(EUserStatus.INACTIVE),
   }),
 ];
 
@@ -100,7 +98,6 @@ export const createFromCsv = (r: IReaded) => {
     password: 'password',
     refreshToken: 'refreshToken',
     avatar: avatars[Math.floor(Math.random() * avatars.length)] || '',
-    role: Role.of(EUserRole.VIEWER),
     status: UserStatus.of(EUserStatus.ACTIVE),
     department: Department.of(dep),
     position: Position.ofLabel(r.position),
@@ -110,7 +107,5 @@ export const createFromCsv = (r: IReaded) => {
         Number(v || 0),
       ),
     ),
-    createdAt,
-    updatedAt: createdAt,
   });
 };

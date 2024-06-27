@@ -1,4 +1,4 @@
-import { Department, Role, User } from '@app/entities';
+import { Department, EUserRole, User } from '@app/entities';
 import {
   Ability,
   AbilityBuilder,
@@ -15,7 +15,7 @@ export type AppAbility = Ability<[ECaslAction, Subjects]>;
 
 @Injectable()
 export class CaslAbilityFactory {
-  createForRole(role: Role) {
+  createForRole(role: EUserRole) {
     const { can, cannot, build } = new AbilityBuilder<
       Ability<[ECaslAction, Subjects]>
     >(Ability as AbilityClass<AppAbility>);

@@ -1,30 +1,43 @@
 import { Exclude, Expose, Transform } from 'class-transformer';
-import { AbstractEntity, Activity, Department, Position } from '@app/entities';
+import { Document, HydratedDocument, Types } from 'mongoose';
+import { Activity, Department, Position } from '@app/entities';
 import { USER_GROUP } from '@app/entities/constants/groupsNames';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { EUserRole, EUserStatus } from './constants';
-import { Role } from './role.entity';
 import { UserStatus } from './user-status.entity';
 
-export class User extends AbstractEntity {
-  public id: string;
+@Schema({ timestamps: true, collection: 'users' })
+export class User {
+  @Exclude({ toPlainOnly: true })
+  _id!: Types.ObjectId;
+  id!: string;
+  createdAt: number;
+  updatedAt: number;
 
+  @Prop()
   public username: string;
 
+  @Prop()
   public email: string;
 
   @Exclude({ toPlainOnly: true })
-  public password: string;
+  //
+  @Prop({ required: false })
+  public password?: string;
 
   @Exclude({ toPlainOnly: true })
-  public refreshToken: string;
+  //
+  @Prop({ required: false })
+  public refreshToken?: string;
 
-  public avatar: string;
+  @Prop({ required: false })
+  public avatar?: string;
 
-  @ApiProperty({ type: () => Role })
-  @Transform(({ value: role }: { value: Role }) => role.value)
   @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
-  public role: Role = Role.of(EUserRole.VIEWER);
+  //
+  @Prop({ type: String, enum: EUserRole, default: EUserRole.VIEWER })
+  public role: EUserRole = EUserRole.VIEWER;
 
   @ApiProperty({ type: () => UserStatus })
   @Expose({ groups: [USER_GROUP.LIST] })
@@ -62,7 +75,7 @@ export class User extends AbstractEntity {
   public activity: Activity[] = [];
 
   constructor(partial: Partial<User>) {
-    super();
+    // super();
     Object.assign(this, partial);
   }
 
@@ -71,7 +84,7 @@ export class User extends AbstractEntity {
   }
 
   public isRole(role: EUserRole): boolean {
-    return this.role.value === role;
+    return this.role === role;
   }
 
   public isStatus(status: EUserStatus): boolean {
@@ -125,3 +138,11 @@ export class User extends AbstractEntity {
     }
   }
 }
+
+export type UserDocument = HydratedDocument<User>;
+export const UserSchema = SchemaFactory.createForClass(User);
+// UserSchema.virtual('id').get(function () {
+//   return this._id.toHexString();
+// });
+UserSchema.set('toJSON', { getters: true, virtuals: true });
+UserSchema.set('toObject', { getters: true, virtuals: true });

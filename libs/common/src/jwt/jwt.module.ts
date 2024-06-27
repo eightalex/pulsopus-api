@@ -1,5 +1,6 @@
 import { JwtAccessGuard, PermissionGuard, RoleGuard } from '@app/common/guard';
 import { JwtAccessStrategy, JwtRefreshStrategy } from '@app/common/strategy';
+import { DatabaseModule } from '@app/database';
 import { DatabaseService } from '@app/database/database.service';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
@@ -9,7 +10,11 @@ import { AuthService } from '@/auth/src/auth.service';
 import { UsersService } from '@/users/src/users.service';
 
 @Module({
-  imports: [NestJwtModule.register({ global: true }), PassportModule],
+  imports: [
+    DatabaseModule,
+    NestJwtModule.register({ global: true }),
+    PassportModule,
+  ],
   providers: [
     JwtService,
     JwtAccessStrategy,

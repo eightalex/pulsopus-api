@@ -1,5 +1,4 @@
 import { Expose } from 'class-transformer';
-import { AbstractEntity } from '@app/entities/abstract.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { EPosition } from './constants';
 
@@ -11,12 +10,11 @@ const departmentLabels: Record<EPosition, string> = {
   [EPosition.PROJECT_MANAGER]: 'Project Manager',
 };
 
-export class Position extends AbstractEntity {
+export class Position {
   @ApiProperty({ enum: () => EPosition })
   public name: EPosition;
 
   constructor(partial: Partial<Position>) {
-    super();
     Object.assign(this, partial);
   }
 
