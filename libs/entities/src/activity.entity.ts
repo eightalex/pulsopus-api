@@ -1,7 +1,13 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class Activity {
-  date: string;
-  value: number;
-  rate: number;
+  @ApiProperty()
+  date: number;
+  @ApiProperty()
+  value: number | null;
+  @ApiProperty()
+  rate?: number | null;
+  @ApiProperty()
   trend?: number;
 
   constructor(partial: Partial<Activity>) {
@@ -9,13 +15,13 @@ export class Activity {
   }
 
   static of(
-    date: string | number,
-    value: number,
-    rate?: number,
+    date: number,
+    value: number | null,
+    rate?: number | null,
     trend?: number,
   ): Activity {
     return new Activity({
-      date: date.toString(),
+      date,
       value,
       rate,
       trend,

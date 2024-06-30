@@ -1,12 +1,13 @@
-import { DatabaseService } from '@app/database/database.service';
-import { UsersDeleteRequestDto } from '@app/dto';
+import { Model, Types } from 'mongoose';
+import { UserResponseDto, UsersDeleteRequestDto } from '@app/dto';
 import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
 import {
+  AccessRequest,
+  EAccessRequestStatus,
   EUserRole,
   EUserStatus,
   TokenPayload,
   User,
-  UserStatus,
 } from '@app/entities';
 import {
   BadRequestException,
@@ -14,13 +15,19 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+    @InjectModel(AccessRequest.name)
+    private readonly accessRequestModel: Model<AccessRequest>,
+  ) {}
 
   public async getById(id: User['id']): Promise<User> {
-    const user = await this.db.userRepository.findOneBy({ id });
+    const user = await this.userModel.findById(id).exec();
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -28,49 +35,62 @@ export class UsersService {
   }
 
   public async getByEmail(email: User['email']): Promise<User> {
-    const user = await this.db.userRepository.findOneBy({ email });
+    const user = await this.userModel.findOne({ email }).exec();
     if (!user) {
       throw new NotFoundException('User not found!');
     }
     return user;
   }
 
-  public async findAll(filter?: Record<string, string[]>): Promise<User[]> {
-    const usrs = await this.db.userRepository.find();
-    if (!filter) return usrs;
-    return usrs
-      .filter((u) => u._filter(filter))
-      .sort((p, n) =>
-        p.username.toLowerCase().localeCompare(n.username.toLowerCase()),
+  public async getAllByRequester(
+    tokenPayload: TokenPayload,
+  ): Promise<UserResponseDto[]> {
+    const { sub, role } = tokenPayload;
+    if (!sub) {
+      throw new BadRequestException(
+        'Unexpected exception. No user recipient id',
       );
-  }
-
-  public async findAllForRole(
-    filter: Record<string, string[]>,
-    role: EUserRole,
-  ): Promise<User[]> {
+    }
     if (!role) {
       throw new BadRequestException('Unexpected exception. No user role');
     }
-    const usrs = await this.findAll(filter);
-    return usrs
-      .filter((u) => u._viewByRole(role))
-      .sort((p, n) => {
-        const statusA = p.status.value;
-        const statusB = n.status.value;
-        const statusOrdering = [EUserStatus.PENDING];
-        return (
-          statusOrdering.indexOf(statusA) - statusOrdering.indexOf(statusB)
-        );
-      });
+    if (role !== EUserRole.ADMIN) {
+      const us = await this.userModel
+        .find({ status: EUserStatus.ACTIVE })
+        .exec();
+      return us.map((u) => User.response(u));
+    }
+    const accessRequests = await this.accessRequestModel
+      .find()
+      .where('toId')
+      .equals(new Types.ObjectId(sub))
+      .where('status')
+      .equals(EAccessRequestStatus.ACTIVE)
+      .exec();
+    const requestUserIds = [
+      ...new Set(
+        accessRequests.map(({ fromId }) =>
+          new Types.ObjectId(fromId).toHexString(),
+        ),
+      ),
+    ];
+
+    const us = await this.userModel
+      .find({
+        $or: [{ status: EUserStatus.ACTIVE }, { _id: { $in: requestUserIds } }],
+      })
+      .sort({
+        status: -1,
+        role: 1,
+        username: 1,
+        updated_at: 1,
+      })
+      .exec();
+    return us.map((u) => User.response(u));
   }
 
   public async updateUser(user: User): Promise<User> {
-    const updatedUser = await this.db.userRepository.update(user);
-    if (!updatedUser) {
-      throw new BadRequestException('Exception user update!');
-    }
-    return updatedUser;
+    return this.userModel.findByIdAndUpdate(user);
   }
 
   public async changeUserStatusById(
@@ -79,11 +99,11 @@ export class UsersService {
   ): Promise<User> {
     const st = EUserStatus[status] || EUserStatus.ACTIVE;
     const user = await this.getById(id);
-    if (!user) {
-      throw new NotFoundException(`User by ID: ${id} not found!`);
-    }
-    user.status = UserStatus.of(st);
-    await this.updateUser(user);
+    // if (!user) {
+    //   throw new NotFoundException(`User by ID: ${id} not found!`);
+    // }
+    // user.status = UserStatus.of(st);
+    // await this.updateUser(user);
     return user;
   }
 
@@ -92,14 +112,14 @@ export class UsersService {
     dto: UsersUpdateBodyRequestDto,
   ): Promise<User> {
     const user = await this.getById(id);
-    Object.entries(dto).forEach(([k, v]) => {
-      if (k === 'status') {
-        user[k] = UserStatus.of(v);
-      }
-      if (k === 'role') {
-        user[k] = EUserRole[v];
-      }
-    });
+    // Object.entries(dto).forEach(([k, v]) => {
+    //   if (k === 'status') {
+    //     user[k] = UserStatus.of(v);
+    //   }
+    //   if (k === 'role') {
+    //     user[k] = EUserRole[v];
+    //   }
+    // });
     return this.updateUser(user);
   }
 
@@ -111,6 +131,22 @@ export class UsersService {
     if (!u || !u.isActive || !u.isAdmin) {
       throw new ForbiddenException('No permission');
     }
-    await this.db.userRepository.remove(params.ids);
+    await this.userModel.deleteOne({ _id: { $in: params.ids } });
+  }
+
+  public async createUserAccessRequest(
+    fromId: User['_id'],
+    toId: User['_id'],
+  ): Promise<AccessRequest> {
+    const accessRequest = await this.accessRequestModel.create({
+      fromId,
+      toId,
+    });
+    const request = await accessRequest.save();
+    const u = await this.userModel.findById(fromId);
+    u.accessRequestIds.push(request._id);
+    u.status = EUserStatus.PENDING;
+    await u.save();
+    return request;
   }
 }

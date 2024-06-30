@@ -1,7 +1,6 @@
 import { JwtAccessGuard, PermissionGuard, RoleGuard } from '@app/common/guard';
 import { JwtAccessStrategy, JwtRefreshStrategy } from '@app/common/strategy';
 import { DatabaseModule } from '@app/database';
-import { DatabaseService } from '@app/database/database.service';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule as NestJwtModule, JwtService } from '@nestjs/jwt';
@@ -33,7 +32,6 @@ import { UsersService } from '@/users/src/users.service';
     },
     AuthService,
     UsersService,
-    DatabaseService,
   ],
   exports: [JwtService, JwtAccessStrategy, JwtRefreshStrategy],
 })

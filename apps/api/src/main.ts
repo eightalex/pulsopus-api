@@ -62,7 +62,11 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new TokenResponseInterceptor(authService));
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector), {
+      enableCircularCheck: true,
+    }),
+  );
 
   await app.listen(config.get('port.api'), async () => {
     logger.log(`Application is running on: ${await app.getUrl()}`);

@@ -1,5 +1,6 @@
-export { Activity } from './activity.entity';
-export { Department } from './department.entity';
+export * from './access-request.entity';
+export * from './activity.entity';
+export * from './department.entity';
 export { Permission } from './permission.entity';
 export { Position } from './position.entity';
 export { TokenPayload } from './token-payload.entity';

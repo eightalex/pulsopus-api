@@ -1,7 +1,7 @@
 export enum EUserStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
+  ACTIVE = 'ACTIVE',
+  PENDING = 'PENDING',
   DELETED = 'DELETED',
 }
 
@@ -25,4 +25,14 @@ export enum EPosition {
   QA_JUNIOR = 'QA_JUNIOR',
   QA_LEAD = 'QA_LEAD',
   PROJECT_MANAGER = 'PROJECT_MANAGER',
+}
+
+export enum EAccessRequestStatus {
+  ACTIVE = 'ACTIVE',
+  CLOSE = 'CLOSE',
+}
+
+export enum EAccessRequestDecision {
+  ACCEPT = 'ACCEPT',
+  DECLINE = 'DECLINE',
 }

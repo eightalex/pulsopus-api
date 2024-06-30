@@ -17,7 +17,7 @@ export class TokenPayload {
 
   static of(user: User): TokenPayload {
     return new TokenPayload({
-      sub: user.id as string,
+      sub: user._id.toHexString(),
       username: user.username,
       role: user.role,
       status: user.status,

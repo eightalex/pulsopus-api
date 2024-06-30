@@ -1,10 +1,6 @@
+import { UsePublic, UseRoles, UserTokenPayload } from '@app/common';
 import {
-  UsePublic,
-  UseRoles,
-  UserTokenPayload,
-  UserTokenRole,
-} from '@app/common';
-import {
+  UserResponseDto,
   UsersDeleteRequestDto,
   UsersFilterRequestDto,
   UsersUpdateBodyRequestDto,
@@ -15,7 +11,6 @@ import {
   TokenPayload,
   User,
   USER_GROUP,
-  UserStatus,
 } from '@app/entities';
 import {
   Body,
@@ -42,12 +37,9 @@ export class UsersController {
   @Get()
   public async getAllUsers(
     @Query(ValidationPipe) filter: UsersFilterRequestDto,
-    @UserTokenRole() role: EUserRole,
-  ): Promise<{ users: User[] }> {
-    const users = await this.usersService.findAllForRole(
-      filter as Record<string, string[]>,
-      role,
-    );
+    @UserTokenPayload() tokenPayload: TokenPayload,
+  ): Promise<{ users: UserResponseDto[] }> {
+    const users = await this.usersService.getAllByRequester(tokenPayload);
     return { users };
   }
 
@@ -59,28 +51,6 @@ export class UsersController {
   ): Promise<{ user: User }> {
     const user = await this.usersService.updateUserByIdDto(params.id, body);
     return { user };
-  }
-
-  @Get('statuses')
-  public async getUserStatuses(
-    @UserTokenRole() fromRole: EUserRole,
-  ): Promise<{ statuses: UserStatus[] }> {
-    const statuses = Object.keys(EUserStatus).map((k) =>
-      UserStatus.of(k as EUserStatus, fromRole),
-    );
-    return { statuses };
-  }
-
-  @Get('roles')
-  public async getUserRoles(
-    @UserTokenRole() fromRole: EUserRole,
-  ): Promise<{ roles: EUserRole[] }> {
-    const roles = Object.keys(EUserRole).map(
-      (k) =>
-        // Role.of(k as EUserRole, fromRole),
-        EUserRole[k],
-    );
-    return { roles };
   }
 
   @Get(':id')

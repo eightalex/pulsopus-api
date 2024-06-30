@@ -1,43 +1,79 @@
-import { Expose, Transform } from 'class-transformer';
-import { v4 as uuidv4 } from 'uuid';
-import { Activity } from '@app/entities';
+import { Exclude, Transform } from 'class-transformer';
+import { HydratedDocument, Types } from 'mongoose';
+import { DepartmentResponseDto } from '@app/dto/departments/department.response.dto';
+import { Activity, EDepartment } from '@app/entities';
 import { departmentNamesMap } from '@app/entities/constants/names';
 import { User } from '@app/entities/user.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { EDepartment } from './constants';
 
+@Schema({
+  collection: 'departments',
+  timestamps: true,
+  toJSON: { getters: true, virtuals: true },
+  toObject: { getters: true, virtuals: true },
+})
 export class Department {
-  public id: string;
+  @Exclude({ toPlainOnly: true })
+  _id!: Types.ObjectId;
+  id!: string;
 
   @ApiProperty({ enum: () => EDepartment })
+  //
+  @Prop({ unique: true, type: String, enum: EDepartment })
   public value: EDepartment;
 
-  @ApiProperty({ type: () => [Activity] })
-  @Transform(({ value: activity }) =>
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    activity.map(({ ...data }: Activity) => data),
-  )
-  public activity: Activity[] = [];
+  @Prop()
+  public label: string;
+
+  @Prop({ type: [Types.ObjectId], ref: 'User' })
+  public userIds: User['_id'][] = [];
 
   public users: User[] = [];
+
+  @Prop({ type: Map, of: Object, default: {} })
+  // activities: Record<number, Activity>;
+  activities: Map<number, Activity>;
 
   constructor(partial: Partial<Department>) {
     Object.assign(this, partial);
   }
-
   static of(
-    department: EDepartment,
-    rest: Partial<Department> = {},
+    valueOrPartial:
+      | EDepartment
+      | ({ value: EDepartment } & Partial<Department>),
   ): Department {
-    return new Department({
-      id: uuidv4(),
-      value: department,
-      ...rest,
-    });
+    let res = {} as Partial<Department>;
+    if (typeof valueOrPartial === 'string') {
+      res.value = valueOrPartial;
+    } else {
+      res = {
+        value: EDepartment.COMPANY,
+        ...valueOrPartial,
+      };
+    }
+    if (!res.label) {
+      res.label = departmentNamesMap.get(res.value);
+    }
+    return new Department(res);
   }
 
-  @Expose()
-  public get label(): string {
-    return this.value ? departmentNamesMap.get(this.value) : this.value;
+  static response(
+    departmentDocument: DepartmentDocument,
+  ): DepartmentResponseDto {
+    return DepartmentResponseDto.of(departmentDocument);
   }
 }
+
+export type DepartmentDocument = HydratedDocument<Department>;
+export const DepartmentSchema = SchemaFactory.createForClass(Department);
+DepartmentSchema.loadClass(Department);
+DepartmentSchema.virtual('users', {
+  ref: 'User',
+  localField: 'userIds',
+  foreignField: '_id',
+});
+DepartmentSchema.pre(/^find/, function (this: any, next) {
+  this.populate('users');
+  next();
+});

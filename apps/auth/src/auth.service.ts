@@ -4,7 +4,7 @@ import {
   AuthLoginSendRequestDto,
   AuthResponseDto,
 } from '@app/dto';
-import { EUserStatus, TokenPayload, User, UserStatus } from '@app/entities';
+import { TokenPayload, User } from '@app/entities';
 import {
   BadRequestException,
   ForbiddenException,
@@ -23,9 +23,9 @@ export class AuthService {
   public tokens: Map<string, string[]> = new Map();
 
   constructor(
-    private readonly usersService: UsersService,
-    private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly jwt: JwtService,
+    private readonly usersService: UsersService,
   ) {}
 
   private getSecret(key: TokenType = 'access'): {
@@ -116,11 +116,8 @@ export class AuthService {
   }
 
   private async systemLogin(user: User): Promise<AuthResponseDto> {
-    if (user.isDeleted) {
-      throw new BadRequestException(`Forbidden. User blocked`);
-    }
     if (!user.isActive) {
-      throw new ForbiddenException(`Forbidden. STATUS: ${user.status.value}`);
+      throw new ForbiddenException(`Forbidden. STATUS: ${user.status}`);
     }
     const accessToken = await this.signToken(user);
     const refreshToken = await this.signToken(user, 'refresh');
@@ -165,7 +162,7 @@ export class AuthService {
 
   public async requestAccess(dto: AuthLoginSendRequestDto) {
     const u = await this.usersService.getByEmail(dto.login);
-    if (u.isPending) {
+    if (u.hasActiveAccessRequest) {
       throw new BadRequestException('Request has already been sent!');
     }
     if (u.isActive) {
@@ -176,7 +173,6 @@ export class AuthService {
       throw new BadRequestException('Invalid recipient');
     }
 
-    u.status = UserStatus.of(EUserStatus.PENDING);
-    await this.usersService.updateUser(u);
+    await this.usersService.createUserAccessRequest(u._id, recipient._id);
   }
 }
