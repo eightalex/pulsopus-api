@@ -33,6 +33,7 @@ export enum EAccessRequestStatus {
 }
 
 export enum EAccessRequestDecision {
+  // NO_DECISION = 'NO_DECISION',
   ACCEPT = 'ACCEPT',
   DECLINE = 'DECLINE',
 }

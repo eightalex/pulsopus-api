@@ -1,12 +1,6 @@
 import { ConfigModule } from '@app/common';
-import {
-  AccessRequest,
-  AccessRequestSchema,
-  Department,
-  DepartmentSchema,
-  User,
-  UserSchema,
-} from '@app/entities';
+import { DatabaseService } from '@app/database/database.service';
+import { Department, DepartmentSchema, User, UserSchema } from '@app/entities';
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -24,7 +18,6 @@ import { MongooseConfigService } from './mongoose.config';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Department.name, schema: DepartmentSchema },
-      { name: AccessRequest.name, schema: AccessRequestSchema },
     ]),
     // TypeOrmModule.forRootAsync({
     //   imports: [ConfigModule],
@@ -33,7 +26,7 @@ import { MongooseConfigService } from './mongoose.config';
     // }),
     forwardRef(() => MigrationModule),
   ],
-  providers: [],
-  exports: [MongooseModule],
+  providers: [DatabaseService],
+  exports: [MongooseModule, DatabaseService],
 })
 export class DatabaseModule {}

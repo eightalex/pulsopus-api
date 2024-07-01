@@ -1,9 +1,8 @@
 import { Connection, Model } from 'mongoose';
+import { MigrationService } from '@app/database/migration/migration.service';
 import { Activity, Department, EDepartment, User } from '@app/entities';
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { CsvUserData } from './helpers/csv-user-data';
-import { parseCsvData, presetsUsers } from './helpers/mock';
 
 const sortCompareObjectKeys = (
   p: [string | number, unknown],
@@ -15,7 +14,7 @@ const sortCompareObjectKeys = (
 };
 
 @Injectable()
-export class MigrationService {
+export class DatabaseService {
   constructor(
     @InjectConnection()
     private readonly connection: Connection,
@@ -23,87 +22,7 @@ export class MigrationService {
     private readonly userModel: Model<User>,
     @InjectModel(Department.name)
     private readonly departmentModel: Model<Department>,
-  ) {
-    // this.initial();
-  }
-
-  public static calcTrend(value: number, prevValue: number): number {
-    if (!value && !prevValue) return 0;
-    if (!value) return -100;
-    if (!prevValue) return 100;
-    const cV = Math.max(Number(value), 1);
-    const pV = Math.max(Number(prevValue), 1);
-    const diffAbsolute = cV / pV;
-    return cV >= pV ? (diffAbsolute - 1) * 100 : (1 - diffAbsolute) * -100;
-  }
-
-  private async dropCollections() {
-    const collectionNames = [
-      this.userModel.collection.collectionName,
-      this.departmentModel.collection.collectionName,
-    ];
-    for (const collectionName of collectionNames) {
-      try {
-        await this.connection.dropCollection(collectionName);
-        console.log(`Collection ${collectionName} dropped successfully`);
-      } catch (error) {
-        if (error.code === 26) {
-          console.log(`Collection ${collectionName} does not exist`);
-        } else {
-          console.error(`Error dropping collection ${collectionName}:`, error);
-        }
-      }
-    }
-  }
-
-  private async createStockDepartments() {
-    for (const value of Object.keys(EDepartment)) {
-      const dep = Department.of(value as EDepartment);
-      await this.departmentModel.create(dep);
-    }
-  }
-
-  private async createStockUsers() {
-    const usrsReaded = await new CsvUserData().readFile();
-    const readedUserInstances = usrsReaded.map((r) => parseCsvData(r));
-    const usersForCreate = [...readedUserInstances, ...presetsUsers];
-    for (const user of usersForCreate) {
-      const depValue = user.department;
-      const department = await this.departmentModel.findOne({
-        value: depValue,
-      });
-      const company = await this.departmentModel.findOne({
-        value: EDepartment.COMPANY,
-      });
-
-      const activities = Object.entries(user.activity || {})
-        .sort(sortCompareObjectKeys)
-        .reduce((acc, [d, v], idx, arr) => {
-          const date = Number(d);
-          const trend = MigrationService.calcTrend(v, arr[idx - 1]?.[1]);
-          acc[date] = Activity.of(date, v, -1, trend);
-          return acc;
-        }, {});
-      const u = await this.userModel.create({
-        ...user,
-        department,
-        activities,
-      });
-      if (department) {
-        department.userIds.push(u._id);
-        await department.save();
-      }
-      if (company) {
-        company.userIds.push(u._id);
-        await company.save();
-      }
-    }
-  }
-
-  private async createStockData() {
-    await this.createStockDepartments();
-    await this.createStockUsers();
-  }
+  ) {}
 
   private async fillDepartmentActivities() {
     const departments = await this.departmentModel
@@ -173,6 +92,7 @@ export class MigrationService {
       await department.save();
     }
   }
+
   private async computeUsersRate() {
     const company = await this.departmentModel
       .findOne({
@@ -233,15 +153,8 @@ export class MigrationService {
     await this.computeUsersRate();
   }
 
-  private async initial() {
-    await this.dropCollections();
-
-    await this.createStockData();
-
+  public async updateDatabaseData() {
     await this.fillDepartmentActivities();
-
     await this.computeData();
-
-    console.log('MIGRATED END');
   }
 }

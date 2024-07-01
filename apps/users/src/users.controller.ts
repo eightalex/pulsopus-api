@@ -1,17 +1,12 @@
-import { UsePublic, UseRoles, UserTokenPayload } from '@app/common';
+import { UseRoles, UserTokenPayload } from '@app/common';
 import {
   UserResponseDto,
+  UsersAccessRequestBodyRequestDto,
   UsersDeleteRequestDto,
   UsersFilterRequestDto,
   UsersUpdateBodyRequestDto,
 } from '@app/dto';
-import {
-  EUserRole,
-  EUserStatus,
-  TokenPayload,
-  User,
-  USER_GROUP,
-} from '@app/entities';
+import { EUserRole, TokenPayload, User, USER_GROUP } from '@app/entities';
 import {
   Body,
   Controller,
@@ -20,6 +15,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Post,
   Put,
   Query,
   SerializeOptions,
@@ -48,53 +44,33 @@ export class UsersController {
   public async updateUser(
     @Param() params: { id: User['id'] },
     @Body() body: UsersUpdateBodyRequestDto,
-  ): Promise<{ user: User }> {
+  ): Promise<{ user: UserResponseDto }> {
     const user = await this.usersService.updateUserByIdDto(params.id, body);
     return { user };
   }
 
-  @Get(':id')
-  @UsePublic()
-  public async getUserById(
-    @Param() params: { id: User['id'] },
-  ): Promise<{ user: User }> {
-    const user = await this.usersService.getById(params.id);
-    return { user };
+  @Post(':id/access')
+  @UseRoles(EUserRole.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async acceptPending(
+    @Param() params: { id: User['_id'] },
+    @Body() body: UsersAccessRequestBodyRequestDto,
+    @UserTokenPayload() tokenPayload: TokenPayload,
+  ): Promise<void> {
+    await this.usersService.setUserAccessRequestDecision(
+      params.id,
+      body,
+      tokenPayload,
+    );
   }
 
   @Delete()
+  @UseRoles(EUserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   public async deleteUserByIds(
     @Query() params: UsersDeleteRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<void> {
     return this.usersService.deleteUsers(params, tokenPayload);
-  }
-
-  @UsePublic()
-  @Get(':id/status/:status')
-  public async changeUserStatusById(
-    @Param() params: { id: User['id']; status: EUserStatus },
-  ) {
-    const res = {
-      successfully: true,
-      statuses: [...Object.values(EUserStatus)],
-    };
-    try {
-      const user = await this.usersService.changeUserStatusById(
-        params.id,
-        params.status,
-      );
-      return {
-        ...res,
-        user,
-      };
-    } catch (err) {
-      return {
-        ...res,
-        successfully: false,
-        message: err.message,
-      };
-    }
   }
 }

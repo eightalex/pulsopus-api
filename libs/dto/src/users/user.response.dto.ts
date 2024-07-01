@@ -1,10 +1,4 @@
-import {
-  AccessRequest,
-  Activity,
-  Department,
-  User,
-  UserDocument,
-} from '@app/entities';
+import { Activity, Department, User, UserDocument } from '@app/entities';
 
 export class UserResponseDto {
   public id: User['id'];
@@ -17,8 +11,8 @@ export class UserResponseDto {
   public position: User['position'];
   public activity: Activity[];
   public isPending: boolean;
-  public pendingRequestId?: AccessRequest['id'];
   public isActive: boolean;
+  public isAdmin: boolean;
   public createdAt: number;
   public updatedAt: number;
   constructor(partial: Partial<UserResponseDto>) {
@@ -45,10 +39,9 @@ export class UserResponseDto {
         : null,
       activity,
       position: userDocument.position,
-      isPending: userDocument.hasActiveAccessRequest,
-      pendingRequestId:
-        userDocument.accessRequests[userDocument.accessRequests.length - 1]?.id,
+      isPending: userDocument.isPending,
       isActive: userDocument.isActive,
+      isAdmin: userDocument.isAdmin,
       createdAt: userDocument.createdAt,
       updatedAt: userDocument.updatedAt,
     });

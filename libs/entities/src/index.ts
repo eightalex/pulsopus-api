@@ -1,4 +1,3 @@
-export * from './access-request.entity';
 export * from './activity.entity';
 export * from './department.entity';
 export { Permission } from './permission.entity';

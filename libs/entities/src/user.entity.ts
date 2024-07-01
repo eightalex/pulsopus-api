@@ -2,7 +2,7 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 import * as moment from 'moment';
 import { HydratedDocument, Types } from 'mongoose';
 import { UserResponseDto } from '@app/dto';
-import { AccessRequest, Activity, Department } from '@app/entities';
+import { Activity, Department } from '@app/entities';
 import { USER_GROUP } from '@app/entities/constants/groupsNames';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
@@ -70,12 +70,9 @@ export class User {
   @Prop({ type: Map, of: Object, default: {} })
   activities: Map<number, Activity>;
 
-  @Exclude({ toPlainOnly: true })
-  @Prop({ type: [Types.ObjectId], ref: AccessRequest.name })
-  public accessRequestIds: AccessRequest['_id'][] = [];
-
-  @Exclude({ toPlainOnly: true })
-  public accessRequests: AccessRequest[] = [];
+  @Exclude()
+  @Prop({ type: String })
+  accessRequestAdminId: User['_id'];
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
@@ -110,17 +107,18 @@ export class User {
     return this.isStatus(EUserStatus.ACTIVE);
   }
 
-  @Expose({ groups: [USER_GROUP.LIST], name: 'isPending' })
-  public get hasActiveAccessRequest(): boolean {
-    const activeRequest = this.accessRequests.find(
-      (request) => request.isActive,
-    );
-    return Boolean(activeRequest);
+  @Expose({ groups: [USER_GROUP.LIST] })
+  public get isPending(): boolean {
+    return this.isStatus(EUserStatus.PENDING);
   }
 
   @Expose({ groups: [USER_GROUP.AUTH, USER_GROUP.LIST] })
   public get isAdmin(): boolean {
     return this.isRole(EUserRole.ADMIN);
+  }
+
+  public response(): UserResponseDto {
+    return User.response(this);
   }
 
   static response(user: User): UserResponseDto;
@@ -134,14 +132,7 @@ export class User {
 export type UserDocument = HydratedDocument<User>;
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.loadClass(User);
-
-UserSchema.virtual('accessRequests', {
-  ref: AccessRequest.name,
-  localField: 'accessRequestIds',
-  foreignField: '_id',
-});
-
 UserSchema.pre(/^find/, function (this: any, next) {
-  this.populate('accessRequests').populate('department', ['value', 'label']);
+  this.populate('department', ['value', 'label']);
   next();
 });
