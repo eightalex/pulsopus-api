@@ -1,0 +1,67 @@
+### test login
+GET http://localhost:{{port}}/{{prefix}}/{{version}}/auth/test/admin@pulsopus.dev
+
+
+### login
+POST http://localhost:{{port}}/{{prefix}}/{{version}}/auth/login
+Content-Type: application/json
+
+{
+  "login": "admin@pulsopus.dev",
+  "password": "password"
+}
+
+### register full host
+POST http://167.99.248.5:{{port}}/{{prefix}}/auth/register
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "admin@plusopus.com",
+  "password": "admin"
+}
+
+### register full
+POST http://localhost:{{port}}/{{prefix}}/auth/register
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "admin@mail.com",
+  "password": "admin"
+}
+
+### register empty
+POST http://localhost:{{port}}/{{prefix}}/auth/register
+Content-Type: application/json
+
+{}
+
+### login full
+POST http://localhost:{{port}}/{{prefix}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin@mail.com",
+  "password": "admin"
+}
+
+### login empty
+POST http://localhost:{{port}}/{{prefix}}/auth/login
+Content-Type: application/json
+
+{}
+
+### get me
+GET http://localhost:{{port}}/{{prefix}}/auth/current
+Authorization: Bearer {{token}}
+
+### logout
+GET http://localhost:{{port}}/{{prefix}}/auth/logout
+Authorization: Bearer {{token}}
+
+### refresh full
+GET http://localhost:{{port}}/{{prefix}}/auth/refresh
+Authorization: Bearer {{refreshToken}}
+
+

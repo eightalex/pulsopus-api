@@ -25,7 +25,7 @@ export class MongooseConfigService implements MongooseOptionsFactory {
     const { mongo } = this.config.get('db');
     return {
       uri: mongo.uri,
-      retryAttempts: 10,
+      retryAttempts: 1,
       retryDelay: 1,
       connectionFactory: this.connectionFactory,
       connectionErrorFactory: this.connectionErrorFactory,

@@ -103,7 +103,6 @@ export class UsersService {
       throw new ForbiddenException('No permission');
     }
     await this.userModel.deleteMany({ _id: { $in: params.ids } });
-    await this.databaseService.updateDatabaseData();
   }
 
   public async createUserAccessRequest(
@@ -111,10 +110,7 @@ export class UsersService {
     toId: User['_id'],
   ): Promise<UserResponseDto> {
     const u = await this.userModel.findById(fromId);
-    u.accessRequestAdminId = toId;
-    u.status = EUserStatus.PENDING;
-    await u.save();
-    return u.response();
+    return;
   }
 
   public async setUserAccessRequestDecision(
