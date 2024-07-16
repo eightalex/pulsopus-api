@@ -5,7 +5,15 @@
   "root": "apps/api",
   "sourceRoot": "apps/api/src",
   "compilerOptions": {
-    "plugins": ["@nestjs/swagger"]
+    "plugins": ["@nestjs/swagger"],
+    "deleteOutDir": true,
+    "assets": [
+      {
+        "include": "../../../libs/mailer/src/templates/**/*",
+        "outDir": "dist/libs/mailer/src/",
+        "watchAssets": true
+      }
+    ]
   },
   "projects": {
     "common": {
@@ -42,6 +50,15 @@
       "sourceRoot": "libs/database/src",
       "compilerOptions": {
         "tsConfigPath": "libs/database/tsconfig.lib.json"
+      }
+    },
+    "mailer": {
+      "type": "library",
+      "root": "libs/mailer",
+      "entryFile": "index",
+      "sourceRoot": "libs/mailer/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/mailer/tsconfig.lib.json"
       }
     },
     "api": {

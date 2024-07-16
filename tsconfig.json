@@ -44,6 +44,12 @@
       ],
       "@app/database/*": [
         "libs/database/src/*"
+      ],
+      "@app/mailer": [
+        "libs/mailer/src"
+      ],
+      "@app/mailer/*": [
+        "libs/mailer/src/*"
       ]
     }
   }

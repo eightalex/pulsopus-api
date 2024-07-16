@@ -23,6 +23,16 @@ class EnvironmentVariables {
 
   @IsString()
   MONGODB_URI: string;
+
+  // MAILER
+  @IsString()
+  MAIL_HOST: string;
+  @IsNumber()
+  MAIL_PORT: number;
+  @IsString()
+  MAIL_USER: string;
+  @IsString()
+  MAIL_PASSWORD: string;
 }
 
 export const validateConfig = (config: Record<string, unknown>) => {
@@ -78,5 +88,11 @@ export default (): Record<string, unknown> => ({
       key: process.env.JWT_SECRET_REFRESH,
       expire: process.env.JWT_SECRET_REFRESH_EXPIRE,
     },
+  },
+  mailer: {
+    host: process.env.MAIL_HOST,
+    port: process.env.MAIL_PORT,
+    user: process.env.MAIL_USER,
+    password: process.env.MAIL_PASSWORD,
   },
 });
