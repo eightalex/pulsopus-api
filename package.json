@@ -11,7 +11,8 @@
   "scripts": {
     "dev": "yarn run start:dev",
     "debug": "yarn run start:debug",
-    "build": "nest build",
+    "prebuild": "chmod ug+x prebuild.sh && sh $PWD/prebuild.sh",
+    "build": "yarn run prebuild && nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
