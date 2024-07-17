@@ -191,7 +191,7 @@ export class UsersService {
       const admin = await this.userModel
         .findOne({ username: 'admin test' })
         .exec();
-      await this.mailerService.sendAccessRequestForAdmin({
+      const sendAdmin = this.mailerService.sendAccessRequestForAdmin({
         to: admin.email,
         adminName: admin.username,
         userName: u.username,
@@ -199,15 +199,16 @@ export class UsersService {
         approveLink: this.clientUrl,
         denyLink: this.clientUrl,
       });
-      await this.mailerService.sendUserAccessApproved({
+      const sendUserApprove = this.mailerService.sendUserAccessApproved({
         to: u.email,
         userName: u.username,
         loginLink: this.clientUrl,
       });
-      await this.mailerService.sendUserAccessRejected({
+      const sendUserReject = this.mailerService.sendUserAccessRejected({
         to: u.email,
         userName: u.username,
       });
+      return await Promise.all([sendAdmin, sendUserApprove, sendUserReject]);
     } catch (err) {
       throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
     }

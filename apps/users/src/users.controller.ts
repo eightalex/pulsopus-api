@@ -77,6 +77,6 @@ export class UsersController {
   @Get('test/sendmail')
   @UsePublic()
   public async sendAccessRequestAdmin() {
-    await this.usersService.test();
+    return this.usersService.test();
   }
 }
