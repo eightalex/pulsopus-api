@@ -1,0 +1,2 @@
+### test login
+GET http://localhost:{{port}}/{{prefix}}/{{version}}/users/test/sendmail

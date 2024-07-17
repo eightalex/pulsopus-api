@@ -1,4 +1,4 @@
-import { UseRoles, UserTokenPayload } from '@app/common';
+import { UsePublic, UseRoles, UserTokenPayload } from '@app/common';
 import {
   UserResponseDto,
   UsersAccessRequestBodyRequestDto,
@@ -72,5 +72,11 @@ export class UsersController {
     @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<void> {
     return this.usersService.deleteUsers(params, tokenPayload);
+  }
+
+  @Get('test/sendmail')
+  @UsePublic()
+  public async sendAccessRequestAdmin() {
+    await this.usersService.test();
   }
 }

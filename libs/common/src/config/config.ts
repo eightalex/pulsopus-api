@@ -24,6 +24,9 @@ class EnvironmentVariables {
   @IsString()
   MONGODB_URI: string;
 
+  @IsString()
+  CLIENT_URL: string;
+
   // MAILER
   @IsString()
   MAIL_HOST: string;
@@ -94,5 +97,8 @@ export default (): Record<string, unknown> => ({
     port: process.env.MAIL_PORT,
     user: process.env.MAIL_USER,
     password: process.env.MAIL_PASSWORD,
+  },
+  client: {
+    url: process.env.CLIENT_URL,
   },
 });

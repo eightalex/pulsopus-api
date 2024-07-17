@@ -13,12 +13,16 @@ import {
   TokenPayload,
   User,
 } from '@app/entities';
+import { MailerService } from '@app/mailer';
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
@@ -27,7 +31,14 @@ export class UsersService {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
     private readonly databaseService: DatabaseService,
+    private readonly mailerService: MailerService,
+    private readonly configService: ConfigService,
   ) {}
+
+  private get clientUrl(): string {
+    const { url } = this.configService.get('client');
+    return url;
+  }
 
   public async getById(id: User['id']): Promise<User> {
     const user = await this.userModel.findById(id).exec();
@@ -90,7 +101,7 @@ export class UsersService {
     id: User['id'],
     dto: UsersUpdateBodyRequestDto,
   ): Promise<UserResponseDto> {
-    const user = await this.userModel.findByIdAndUpdate(id, { ...dto });
+    const user = await this.userModel.findByIdAndUpdate(id, { ...dto }).exec();
     return UserResponseDto.of(user);
   }
 
@@ -109,8 +120,25 @@ export class UsersService {
     fromId: User['_id'],
     toId: User['_id'],
   ): Promise<UserResponseDto> {
-    const u = await this.userModel.findById(fromId);
-    return;
+    try {
+      const u = await this.userModel.findById(fromId).exec();
+      u.accessRequestAdminId = toId;
+      u.status = EUserStatus.PENDING;
+      await u.save();
+
+      const admin = await this.userModel.findById(toId).exec();
+      await this.mailerService.sendAccessRequestForAdmin({
+        to: admin.email,
+        adminName: admin.username,
+        userName: u.username,
+        loginLink: this.clientUrl,
+        approveLink: this.clientUrl,
+        denyLink: this.clientUrl,
+      });
+      return u.response();
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   public async setUserAccessRequestDecision(
@@ -118,15 +146,59 @@ export class UsersService {
     body: UsersAccessRequestBodyRequestDto,
     tokenPayload: TokenPayload,
   ): Promise<void> {
-    const user = await this.userModel.findOne({
-      _id: fromId,
-      accessRequestAdminId: tokenPayload.sub,
+    try {
+      const user = await this.userModel
+        .findOne({
+          _id: fromId,
+          accessRequestAdminId: tokenPayload.sub,
+        })
+        .exec();
+      user.accessRequestAdminId = null;
+
+      if (body.decision === EAccessRequestDecision.ACCEPT) {
+        user.status = EUserStatus.ACTIVE;
+        await this.mailerService.sendUserAccessApproved({
+          to: user.email,
+          userName: user.username,
+          loginLink: this.clientUrl,
+        });
+      } else {
+        user.status = EUserStatus.INACTIVE;
+        await this.mailerService.sendUserAccessRejected({
+          to: user.email,
+          userName: user.username,
+        });
+      }
+      await user.save();
+    } catch (err) {
+      throw new HttpException(
+        'Oops... Something wrong!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  public async test() {
+    const u = await this.userModel.findOne({ username: 'user test' }).exec();
+    const admin = await this.userModel
+      .findOne({ username: 'admin test' })
+      .exec();
+    await this.mailerService.sendAccessRequestForAdmin({
+      to: admin.email,
+      adminName: admin.username,
+      userName: u.username,
+      loginLink: this.clientUrl,
+      approveLink: this.clientUrl,
+      denyLink: this.clientUrl,
     });
-    user.accessRequestAdminId = null;
-    user.status =
-      body.decision === EAccessRequestDecision.ACCEPT
-        ? EUserStatus.ACTIVE
-        : EUserStatus.INACTIVE;
-    await user.save();
+    await this.mailerService.sendUserAccessApproved({
+      to: u.email,
+      userName: u.username,
+      loginLink: this.clientUrl,
+    });
+    await this.mailerService.sendUserAccessRejected({
+      to: u.email,
+      userName: u.username,
+    });
   }
 }

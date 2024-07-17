@@ -3,24 +3,28 @@ import { MailerService as NestMailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class MailerService {
+  private noReplyFrom = 'Pulsopus Team <noreply@pulsopus.dev>';
   constructor(private readonly service: NestMailerService) {}
 
-  public async sendUserAccessApproved(dto: {
-    adminName: string;
+  private dtoMockEmailTo(email: string) {
+    return 'pulsopus.dev+' + email.replace('@pulsopus.dev', '@gmail.com');
+  }
+
+  public async sendUserAccessApproved(params: {
+    to: string;
     userName: string;
-    loginLinkUrl: string;
+    loginLink: string;
   }) {
-    const { adminName, userName, loginLinkUrl } = dto;
+    const { to, userName, loginLink } = params;
     try {
       await this.service.sendMail({
-        to: 'dev.radchenkobs@gmail.com',
-        from: 'dev.radchenkobs@gmail.com',
-        subject: 'Access Granted to Pulsopus',
         template: 'user-access-approved',
+        to: this.dtoMockEmailTo(to),
+        from: this.noReplyFrom,
+        subject: 'Access Granted to Pulsopus',
         context: {
-          admin_name: adminName,
-          user_name: userName,
-          login_url: loginLinkUrl,
+          userName,
+          loginLink,
         },
       });
     } catch (err) {
@@ -28,15 +32,21 @@ export class MailerService {
     }
   }
 
-  public async sendUserAccessRejected({ userName }: { userName: string }) {
+  public async sendUserAccessRejected({
+    to,
+    userName,
+  }: {
+    to: string;
+    userName: string;
+  }) {
     try {
       await this.service.sendMail({
-        to: 'dev.radchenkobs@gmail.com',
-        from: 'dev.radchenkobs@gmail.com',
-        subject: 'Access Request for Pulsopus',
         template: 'user-access-rejected',
+        to: this.dtoMockEmailTo(to),
+        from: this.noReplyFrom,
+        subject: 'Access Request for Pulsopus',
         context: {
-          user_name: userName,
+          userName,
         },
       });
     } catch (err) {
@@ -45,48 +55,32 @@ export class MailerService {
   }
 
   public async sendAccessRequestForAdmin(dto: {
+    to: string;
     adminName: string;
     userName: string;
-    loginLinkUrl: string;
+    loginLink: string;
+    approveLink: string;
+    denyLink: string;
   }) {
-    const { adminName, userName, loginLinkUrl } = dto;
+    const { to, adminName, userName, loginLink, approveLink, denyLink } = dto;
+    this.dtoMockEmailTo(to);
+    return;
     try {
       await this.service.sendMail({
-        to: 'dev.radchenkobs@gmail.com',
-        from: 'dev.radchenkobs@gmail.com',
-        subject: 'Access Request for Pulsopus',
         template: 'admin-access-request',
+        to: this.dtoMockEmailTo(to),
+        from: this.noReplyFrom,
+        subject: 'Access Request for Pulsopus',
         context: {
-          admin_name: adminName,
-          user_name: userName,
-          login_url: loginLinkUrl,
+          adminName,
+          userName,
+          loginLink,
+          approveLink,
+          denyLink,
         },
       });
     } catch (err) {
       console.log('error', err);
     }
   }
-
-  // public async example() {
-  //   try {
-  //     await this.service.sendMail({
-  //       to: 'dev.radchenkobs@gmail.com',
-  //       from: 'dev.radchenkobs@gmail.com',
-  //       subject: 'Welcome to Nice App! Confirm your Email',
-  //       // template: './transactional', // either change to ./transactional or rename transactional.html to confirmation.html
-  //       template: './admin-access-request',
-  //       context: {
-  //         title: 'title',
-  //         desctiption: 'desctiption',
-  //         name: 'user.name context',
-  //         url: 'url context',
-  //         admin_name: 'admin_name',
-  //         user_name: 'user_name',
-  //         login_url: 'login_url',
-  //       },
-  //     });
-  //   } catch (err) {
-  //     console.error('err', err);
-  //   }
-  // }
 }

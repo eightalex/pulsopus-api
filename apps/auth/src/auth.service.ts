@@ -162,9 +162,9 @@ export class AuthService {
 
   public async requestAccess(dto: AuthLoginSendRequestDto) {
     const u = await this.usersService.getByEmail(dto.login);
-    // if (u.isPending) {
-    //   throw new BadRequestException('Request has already been sent!');
-    // }
+    if (u.isPending) {
+      throw new BadRequestException('Request has already been sent!');
+    }
     if (u.isActive) {
       throw new BadRequestException('User already has access!');
     }

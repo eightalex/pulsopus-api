@@ -1,6 +1,5 @@
 import { Connection, Model } from 'mongoose';
 import { Activity, Department, EDepartment, User } from '@app/entities';
-import { MailerService } from '@app/mailer';
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { CsvUserData } from './helpers/csv-user-data';
@@ -24,7 +23,6 @@ export class MigrationService {
     private readonly userModel: Model<User>,
     @InjectModel(Department.name)
     private readonly departmentModel: Model<Department>,
-    private readonly mailerService: MailerService,
   ) {
     // this.initial();
   }
