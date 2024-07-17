@@ -26,6 +26,8 @@ class EnvironmentVariables {
 
   @IsString()
   CLIENT_URL: string;
+  @IsString()
+  APP_URL: string;
 
   // MAILER
   @IsString()
@@ -98,7 +100,8 @@ export default (): Record<string, unknown> => ({
     user: process.env.MAIL_USER,
     password: process.env.MAIL_PASSWORD,
   },
-  client: {
-    url: process.env.CLIENT_URL,
+  url: {
+    client: process.env.CLIENT_URL,
+    app: process.env.APP_URL,
   },
 });

@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MailerService as NestMailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class MailerService {
+  private readonly logger = new Logger(MailerService.name);
   private noReplyFrom = 'Pulsopus Team <noreply@pulsopus.dev>';
   constructor(private readonly service: NestMailerService) {}
 
@@ -27,8 +28,9 @@ export class MailerService {
           loginLink,
         },
       });
+      this.logger.log(`Send mail [user-access-approved]: to: ${to}`);
     } catch (err) {
-      console.log('error', err);
+      this.logger.error(err);
     }
   }
 
@@ -49,8 +51,9 @@ export class MailerService {
           userName,
         },
       });
+      this.logger.log(`Send mail [user-access-rejected]: to: ${to}`);
     } catch (err) {
-      console.log('error', err);
+      this.logger.error(err);
     }
   }
 
@@ -63,8 +66,6 @@ export class MailerService {
     denyLink: string;
   }) {
     const { to, adminName, userName, loginLink, approveLink, denyLink } = dto;
-    this.dtoMockEmailTo(to);
-    return;
     try {
       await this.service.sendMail({
         template: 'admin-access-request',
@@ -79,8 +80,9 @@ export class MailerService {
           denyLink,
         },
       });
+      this.logger.log(`Send mail [admin-access-request]: to: ${to}`);
     } catch (err) {
-      console.log('error', err);
+      this.logger.error(err);
     }
   }
 }

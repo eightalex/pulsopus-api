@@ -20,6 +20,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -27,6 +28,7 @@ import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
@@ -36,8 +38,13 @@ export class UsersService {
   ) {}
 
   private get clientUrl(): string {
-    const { url } = this.configService.get('client');
-    return url;
+    const { client } = this.configService.get('url');
+    return client;
+  }
+
+  private get clientAppUrl(): string {
+    const { app } = this.configService.get('url');
+    return app;
   }
 
   public async getById(id: User['id']): Promise<User> {
@@ -131,13 +138,13 @@ export class UsersService {
         to: admin.email,
         adminName: admin.username,
         userName: u.username,
-        loginLink: this.clientUrl,
+        loginLink: this.clientAppUrl,
         approveLink: this.clientUrl,
         denyLink: this.clientUrl,
       });
       return u.response();
     } catch (err) {
-      console.error(err);
+      this.logger.error(err);
     }
   }
 

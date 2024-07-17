@@ -11,6 +11,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -20,6 +21,7 @@ type TokenType = 'access' | 'refresh';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   public tokens: Map<string, string[]> = new Map();
 
   constructor(
