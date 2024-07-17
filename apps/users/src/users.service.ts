@@ -186,26 +186,30 @@ export class UsersService {
   }
 
   public async test() {
-    const u = await this.userModel.findOne({ username: 'user test' }).exec();
-    const admin = await this.userModel
-      .findOne({ username: 'admin test' })
-      .exec();
-    await this.mailerService.sendAccessRequestForAdmin({
-      to: admin.email,
-      adminName: admin.username,
-      userName: u.username,
-      loginLink: this.clientUrl,
-      approveLink: this.clientUrl,
-      denyLink: this.clientUrl,
-    });
-    await this.mailerService.sendUserAccessApproved({
-      to: u.email,
-      userName: u.username,
-      loginLink: this.clientUrl,
-    });
-    await this.mailerService.sendUserAccessRejected({
-      to: u.email,
-      userName: u.username,
-    });
+    try {
+      const u = await this.userModel.findOne({ username: 'user test' }).exec();
+      const admin = await this.userModel
+        .findOne({ username: 'admin test' })
+        .exec();
+      await this.mailerService.sendAccessRequestForAdmin({
+        to: admin.email,
+        adminName: admin.username,
+        userName: u.username,
+        loginLink: this.clientUrl,
+        approveLink: this.clientUrl,
+        denyLink: this.clientUrl,
+      });
+      await this.mailerService.sendUserAccessApproved({
+        to: u.email,
+        userName: u.username,
+        loginLink: this.clientUrl,
+      });
+      await this.mailerService.sendUserAccessRejected({
+        to: u.email,
+        userName: u.username,
+      });
+    } catch (err) {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }
