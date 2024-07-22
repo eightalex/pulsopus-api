@@ -3,17 +3,17 @@
 ## Environment vars
 This project uses the following environment variables:
 
-| Name                      | Description                | Default Value |
-|---------------------------|----------------------------|---------------|
-| JWT_SECRET_ACCESS         | accepted values            | *             |
-| JWT_SECRET_REFRESH        | Cors accepted values       | *             |
-| JWT_SECRET_ACCESS_EXPIRE  | Cors accepted values       | *             |
-| JWT_SECRET_REFRESH_EXPIRE | Cors accepted values       | *             |
-| MONGODB_URI               | Cors accepted values       | *             |
-| MAIL_HOST                 | Cors accepted values       | *             |
-| MAIL_PORT                 | Cors accepted values       | *             |
-| MAIL_USER                 | Cors accepted values       | *             |
-| MAIL_PASSWORD             | Cors accepted values       | *             |
+| Name                      | Description                              | Default Value |
+|---------------------------|------------------------------------------|---------------|
+| JWT_SECRET_ACCESS         | jwt access secret value                  | *             |
+| JWT_SECRET_REFRESH        | jwt refresh secret value                 | *             |
+| JWT_SECRET_ACCESS_EXPIRE  | jwt access secret expiration time value  | *             |
+| JWT_SECRET_REFRESH_EXPIRE | jwt refresh secret expiration time value | *             |
+| MONGODB_URI               | mongo url connection string              | *             |
+| MAIL_HOST                 | mailer host                              | *             |
+| MAIL_PORT                 | mailer port                              | *             |
+| MAIL_USER                 | mailer username                          | *             |
+| MAIL_PASSWORD             | mailer password                          | *             |
 
 ## Pre-requisites
 - Install [Node.js](https://nodejs.org/en/) version 20.12.2
@@ -21,15 +21,15 @@ This project uses the following environment variables:
 ## Project Structure
 The folder structure of this app is explained below:
 
-| Name          | Description                                                                                      |
-|---------------|--------------------------------------------------------------------------------------------------|
+| Name             | Description                                                                                      |
+|------------------|--------------------------------------------------------------------------------------------------|
 | **node_modules** | Contains all dependencies                                                                        |
-| **dist**      | Contains the distributable (or output) from your TypeScript build.                               |
-| **apps**      | Contains  source code that will be compiled to the dist dir                                      |
-| **libs**      | Common libraries to be used across your app.                                                     
-| package.json  | Contains npm dependencies as well as [build scripts](#what-if-a-library-isnt-on-definitelytyped) |
-| nest-cli.json | Config settings for NestJS                                                                       |
-| eslintrc.js   | Config settings for ESLint code style checking                                                   |
+| **dist**         | Contains the distributable (or output) from your TypeScript build.                               |
+| **apps**         | Contains  source code that will be compiled to the dist dir                                      |
+| **libs**         | Common libraries to be used across your app.                                                     
+| package.json     | Contains npm dependencies as well as [build scripts](#what-if-a-library-isnt-on-definitelytyped) |
+| nest-cli.json    | Config settings for NestJS                                                                       |
+| eslintrc.js      | Config settings for ESLint code style checking                                                   |
 
 ### Installation
 ```sh
