@@ -10,7 +10,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   public createTypeOrmOptions(
     connectionName?: string,
   ): Promise<TypeOrmModuleOptions> | TypeOrmModuleOptions {
-    const db = this.config.get('database');
+    const db = this.config.get('db.pg');
     return {
       type: 'postgres',
       host: db.host,

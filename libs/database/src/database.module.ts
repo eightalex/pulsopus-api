@@ -4,8 +4,10 @@ import { Department, DepartmentSchema, User, UserSchema } from '@app/entities';
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { MigrationModule } from './migration/migration.module';
 import { MongooseConfigService } from './mongoose.config';
+import { TypeOrmConfigService } from './typeorm.config';
 
 @Module({
   imports: [

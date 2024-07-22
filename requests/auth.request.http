@@ -11,6 +11,12 @@ Content-Type: application/json
   "password": "password"
 }
 
+### token login
+POST http://localhost:{{port}}/{{prefix}}/{{version}}/auth/token
+Content-Type: application/json
+Authorization: Bearer {{$auth.token("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2Njk2ZWQ2YmZkOTY5MjQ4N2E0Zjk1MTciLCJ1c2VybmFtZSI6ImFkbWluIHRlc3QiLCJyb2xlIjoiQURNSU4iLCJzdGF0dXMiOiJBQ1RJVkUiLCJpc0FjdGl2ZSI6dHJ1ZSwiaWF0IjoxNzIxNjI5NDE5LCJleHAiOjE3MjE2MzI5NTl9.sR3EnehLIZ1p2jIu2vf16IW8sp_sywX1mXSMt8Puyhc")}}
+
+
 ### register full host
 POST http://167.99.248.5:{{port}}/{{prefix}}/auth/register
 Authorization: Bearer {{token}}

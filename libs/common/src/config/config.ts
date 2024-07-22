@@ -12,6 +12,8 @@ class EnvironmentVariables {
   @IsNumber()
   PORT_AUTH: number;
   @IsNumber()
+  PORT_USERS: number;
+  @IsNumber()
   PORT_DEPARTMENTS: number;
 
   @IsString()
@@ -19,10 +21,32 @@ class EnvironmentVariables {
   @IsString()
   HOST_AUTH: string;
   @IsString()
+  HOST_USERS: string;
+  @IsString()
   HOST_DEPARTMENTS: string;
 
   @IsString()
+  JWT_SECRET_ACCESS: string;
+  @IsString()
+  JWT_SECRET_REFRESH: string;
+  @IsString()
+  JWT_SECRET_ACCESS_EXPIRE: string;
+  @IsString()
+  JWT_SECRET_REFRESH_EXPIRE: string;
+
+  @IsString()
   MONGODB_URI: string;
+
+  @IsString()
+  DB_HOST: string;
+  @IsString()
+  DB_USERNAME: string;
+  @IsString()
+  DB_PASSWORD: string;
+  @IsNumber()
+  DB_PORT: number;
+  @IsString()
+  DB_NAME: string;
 
   @IsString()
   CLIENT_URL: string;
@@ -63,25 +87,24 @@ export default (): Record<string, unknown> => ({
     api: parseInt(process.env.PORT_API, 10) || 8080,
     auth: parseInt(process.env.PORT_AUTH, 10) || 8081,
     users: parseInt(process.env.PORT_USERS, 10) || 8085,
-    departments: parseInt(process.env.PORT_EMPLOYYES, 10) || 8086,
+    departments: parseInt(process.env.PORT_DEPARTMENTS, 10) || 8086,
   },
   host: {
     api: process.env.HOST_API || '0.0.0.0',
     auth: process.env.HOST_AUTH || 'auth',
-    users: process.env.HOST_AUTH || 'users',
-    departments: process.env.HOST_EMPLOYYES || 'departments',
-  },
-  database: {
-    host: process.env.DATABASE_HOST,
-    port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+    users: process.env.HOST_USERS || 'users',
+    departments: process.env.HOST_DEPARTMENTS || 'departments',
   },
   db: {
     mongo: {
       uri: process.env.MONGODB_URI,
     },
     pg: {
-      host: process.env.DATABASE_HOST,
-      port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 10) || 5432,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      name: process.env.DB_NAME,
     },
   },
   secret: {
@@ -101,7 +124,7 @@ export default (): Record<string, unknown> => ({
     password: process.env.MAIL_PASSWORD,
   },
   url: {
-    client: process.env.CLIENT_URL,
-    app: process.env.APP_URL,
+    client: process.env.CLIENT_URL || 'https://pulsopus.dev',
+    app: process.env.APP_URL || 'https://app.pulsopus.dev',
   },
 });
