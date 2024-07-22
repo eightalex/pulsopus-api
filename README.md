@@ -21,15 +21,15 @@ This project uses the following environment variables:
 ## Project Structure
 The folder structure of this app is explained below:
 
-| Name             | Description                                                                                      |
-|------------------|--------------------------------------------------------------------------------------------------|
-| **node_modules** | Contains all dependencies                                                                        |
-| **dist**         | Contains the distributable (or output) from your TypeScript build.                               |
-| **apps**         | Contains  source code that will be compiled to the dist dir                                      |
-| **libs**         | Common libraries to be used across your app.                                                     
-| package.json     | Contains npm dependencies as well as [build scripts](#what-if-a-library-isnt-on-definitelytyped) |
-| nest-cli.json    | Config settings for NestJS                                                                       |
-| eslintrc.js      | Config settings for ESLint code style checking                                                   |
+| Name             | Description                                                                                     |
+|------------------|-------------------------------------------------------------------------------------------------|
+| **node_modules** | Contains all dependencies                                                                       |
+| **dist**         | Contains the distributable (or output) from your TypeScript build.                              |
+| **apps**         | Contains  source code that will be compiled to the dist dir                                     |
+| **libs**         | Common libraries to be used across your app.                                                    
+| package.json     | Contains dependencies as well as [build scripts](#what-if-a-library-isnt-on-definitelytyped) |
+| nest-cli.json    | Config settings for NestJS                                                                      |
+| eslintrc.js      | Config settings for ESLint code style checking                                                  |
 
 ### Installation
 ```sh
