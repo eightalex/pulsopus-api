@@ -29,7 +29,7 @@ async function bootstrap() {
       allowedHeaders: ['content-type', 'authorization'],
       origin: isDev
         ? ['http://localhost:5172', 'http://localhost:5173']
-        : '*.pulsopus.dev',
+        : ['.pulsopus.dev'],
     },
   };
   const app = await NestFactory.create<NestExpressApplication>(
