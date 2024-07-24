@@ -27,7 +27,8 @@ async function bootstrap() {
   const nestOptions = {
     cors: {
       credentials: true,
-      allowedHeaders: ['content-type', 'authorization'],
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+      allowedHeaders: ['content-type', 'authorization', 'accept'],
       origin: isDev
         ? ['http://localhost:5172', 'http://localhost:5173']
         : [/pulsopus\.dev$/, /\.pulsopus\.dev$/],
@@ -53,13 +54,6 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix(config.get('prefix.global'));
-
-  app.use((req: any, res: any, next: any) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
-    next();
-  });
 
   const documentConfig = new DocumentBuilder()
     .setTitle('Pulsopus API')
