@@ -23,13 +23,14 @@ async function bootstrap() {
   const config = appCtx.get(ConfigService<typeof cnfg>);
   const isDev = config.get<boolean>('IS_DEV');
 
+  // TODO: get prod origin from config
   const nestOptions = {
     cors: {
       credentials: true,
       allowedHeaders: ['content-type', 'authorization'],
       origin: isDev
         ? ['http://localhost:5172', 'http://localhost:5173']
-        : ['.pulsopus.dev'],
+        : [/pulsopus\.dev$/, /\.pulsopus\.dev$/],
     },
   };
   const app = await NestFactory.create<NestExpressApplication>(
