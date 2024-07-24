@@ -47,6 +47,10 @@ export class UsersService {
     return app;
   }
 
+  public async create(user: User): Promise<User> {
+    return this.userModel.create(user);
+  }
+
   public async getById(id: User['id']): Promise<User> {
     const user = await this.userModel.findById(id).exec();
     if (!user) {

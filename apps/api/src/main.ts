@@ -2,6 +2,7 @@ import * as cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import { HttpExceptionFilter, TokenResponseInterceptor } from '@app/common';
+import { default as cnfg } from '@app/common/config/config';
 import {
   ClassSerializerInterceptor,
   Logger as NestLogger,
@@ -18,15 +19,27 @@ import { ApiModule } from './api.module';
 
 async function bootstrap() {
   const logger = new NestLogger();
-  const app = await NestFactory.create<NestExpressApplication>(ApiModule);
-  const config = app.get(ConfigService);
+  const appCtx = await NestFactory.createApplicationContext(ApiModule);
+  const config = appCtx.get(ConfigService<typeof cnfg>);
+  const isDev = config.get<boolean>('IS_DEV');
+
+  const nestOptions = {
+    cors: {
+      credentials: true,
+      allowedHeaders: ['content-type', 'authorization'],
+      origin: isDev
+        ? ['http://localhost:5172', 'http://localhost:5173']
+        : '*.pulsopus.dev',
+    },
+  };
+  const app = await NestFactory.create<NestExpressApplication>(
+    ApiModule,
+    nestOptions,
+  );
+  // const config = app.get(ConfigService);
   const authService = app.get(AuthService);
 
   app.use(cookieParser());
-  app.enableCors({
-    allowedHeaders: '*',
-    origin: '*',
-  });
 
   app.useStaticAssets(join(__dirname, '..', '..', '..', 'static'), {
     prefix: '/public',

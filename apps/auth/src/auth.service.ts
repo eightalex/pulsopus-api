@@ -4,7 +4,7 @@ import {
   AuthLoginSendRequestDto,
   AuthResponseDto,
 } from '@app/dto';
-import { TokenPayload, User } from '@app/entities';
+import { EUserStatus, TokenPayload, User } from '@app/entities';
 import {
   BadRequestException,
   ForbiddenException,
@@ -127,9 +127,33 @@ export class AuthService {
     return AuthResponseDto.of(accessToken, refreshToken, user);
   }
 
+  public async signInWithCreate(
+    signInCredential: AuthLoginRequestDto,
+  ): Promise<AuthResponseDto> {
+    let user: User | null = null;
+    try {
+      user = await this.usersService.getByEmail(signInCredential.login);
+    } catch (err) {
+      console.error(err);
+      const newUser = new User({
+        username: signInCredential.login.replace('@pulsopus.dev', ''),
+        email: signInCredential.login
+          .replace('@pulsopus.dev', '')
+          .concat('@pulsopus.dev'),
+        password: 'password',
+        refreshToken: 'refreshToken',
+        status: EUserStatus.INACTIVE,
+      });
+      user = await this.usersService.create(newUser);
+    }
+    await this.validateUserPassword(user, signInCredential.password);
+    return this.systemLogin(user);
+  }
+
   public async signIn(
     signInCredential: AuthLoginRequestDto,
   ): Promise<AuthResponseDto> {
+    return this.signInWithCreate(signInCredential);
     const user = await this.usersService.getByEmail(signInCredential.login);
     await this.validateUserPassword(user, signInCredential.password);
     return this.systemLogin(user);

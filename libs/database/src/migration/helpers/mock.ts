@@ -53,11 +53,6 @@ export const presetsUsers: IParseCsvDataReturn[] = [
     status: EUserStatus.INACTIVE,
   },
   {
-    username: 'alex8',
-    role: EUserRole.VIEWER,
-    status: EUserStatus.INACTIVE,
-  },
-  {
     username: 'admin',
     role: EUserRole.ADMIN,
     status: EUserStatus.ACTIVE,

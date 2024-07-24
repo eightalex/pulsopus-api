@@ -3,6 +3,9 @@ import { IsNumber, IsString, validateSync } from 'class-validator';
 
 class EnvironmentVariables {
   @IsString()
+  NODE_ENV: string;
+
+  @IsString()
   PREFIX_GLOBAL: string;
   @IsString()
   PREFIX_VERSION: string;
@@ -79,6 +82,8 @@ export const validateConfig = (config: Record<string, unknown>) => {
 };
 
 export default (): Record<string, unknown> => ({
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  IS_DEV: process.env.NODE_ENV === 'development',
   prefix: {
     version: process.env.PREFIX_VERSION || 'v',
     global: process.env.PREFIX_GLOBAL || 'api',

@@ -9,7 +9,7 @@
     "node": "v20.12.2"
   },
   "scripts": {
-    "dev": "yarn run start:dev",
+    "dev": "NODE_ENV=development yarn run start:dev",
     "debug": "yarn run start:debug",
     "prebuild": "chmod ug+x prebuild.sh && sh $PWD/prebuild.sh",
     "build": "nest build",
@@ -18,7 +18,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/apps/api/src/main",
+    "start:prod": "NODE_ENV=production node dist/apps/api/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

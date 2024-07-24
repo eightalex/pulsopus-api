@@ -17,6 +17,7 @@ import {
   Res,
   SerializeOptions,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 
@@ -24,7 +25,20 @@ import { AuthService } from './auth.service';
 @Controller('auth')
 @SerializeOptions({ groups: [USER_GROUP.AUTH] })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
+
+  private setResponseToken(res: Response, token: string) {
+    res.cookie('token', token, {
+      httpOnly: true,
+      domain: 'localhost',
+      // domain: '.app.localhost',
+      // domain: '127.0.0.1',
+    });
+    res.setHeader('Authorization', `Bearer ${token}`);
+  }
 
   // swagger
   @ApiOperation({ summary: 'login by user credential.' })
@@ -47,10 +61,16 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
     const data = await this.authService.signIn(body);
-    res.setHeader('Authorization', data.accessToken);
-    res.cookie('refresh', data.refreshToken, {
-      httpOnly: true,
-    });
+    this.setResponseToken(res, data.accessToken);
+    // res.setHeader('Authorization', data.accessToken);
+    // res.cookie('refresh', data.refreshToken, {
+    //   httpOnly: true,
+    // });
+    // res.cookie('token', data.accessToken, {
+    //   httpOnly: false,
+    //   // domain: '.app.localhost',
+    //   domain: '127.0.0.1',
+    // });
     return data;
   }
 
@@ -69,11 +89,17 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
     const data = await this.authService.tokenLogin(token);
-    res.setHeader('Authorization', data.accessToken);
-    res.cookie('refresh', data.refreshToken, {
-      httpOnly: true,
-      maxAge: 3600000,
-    });
+    this.setResponseToken(res, data.accessToken);
+    // res.setHeader('Authorization', data.accessToken);
+    // res.cookie('refresh', data.refreshToken, {
+    //   httpOnly: true,
+    //   maxAge: 3600000,
+    // });
+    // res.cookie('token', data.accessToken, {
+    //   httpOnly: false,
+    //   // domain: '.app.localhost',
+    //   domain: '127.0.0.1',
+    // });
     return data;
   }
 
@@ -95,6 +121,10 @@ export class AuthController {
     res.cookie('refresh', '', {
       httpOnly: true,
       maxAge: 0,
+    });
+    res.cookie('token', '', {
+      maxAge: 0,
+      httpOnly: true,
     });
   }
 
