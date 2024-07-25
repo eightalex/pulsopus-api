@@ -1,7 +1,11 @@
 import * as cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
 import { join } from 'path';
-import { HttpExceptionFilter, TokenResponseInterceptor } from '@app/common';
+import {
+  ConfigModule,
+  HttpExceptionFilter,
+  TokenResponseInterceptor,
+} from '@app/common';
 import { default as cnfg } from '@app/common/config/config';
 import {
   ClassSerializerInterceptor,
@@ -19,8 +23,9 @@ import { ApiModule } from './api.module';
 
 async function bootstrap() {
   const logger = new NestLogger();
-  const appCtx = await NestFactory.createApplicationContext(ApiModule);
-  const config = appCtx.get(ConfigService<typeof cnfg>);
+  const configModuleContex =
+    await NestFactory.createApplicationContext(ConfigModule);
+  const config = configModuleContex.get(ConfigService<typeof cnfg>);
   const isDev = config.get<boolean>('IS_DEV');
 
   // TODO: get prod origin from config
