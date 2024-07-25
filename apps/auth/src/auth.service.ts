@@ -1,4 +1,6 @@
+import { Response } from 'express';
 import { InvalidCredentialsException } from '@app/common';
+import { ms } from '@app/common/utils';
 import {
   AuthLoginRequestDto,
   AuthLoginSendRequestDto,
@@ -169,6 +171,17 @@ export class AuthService {
     return this.systemLogin(user);
   }
 
+  public async tokenRefresh(refreshToken: string): Promise<AuthResponseDto> {
+    // TODO: create refresh auth
+    const payload = await this.validateToken(refreshToken, 'refresh');
+    //
+    const t = this.tokens.get(payload.sub);
+    if (!t) throw new InvalidCredentialsException('Invalid token refresh');
+    //
+    const user = await this.usersService.getById(payload.sub);
+    return this.systemLogin(user);
+  }
+
   private async singInByUserId(userId: User['id']) {
     const user = await this.usersService.getById(userId);
     return this.systemLogin(user);
@@ -181,7 +194,19 @@ export class AuthService {
     return TokenPayload.of(res.user);
   }
 
-  public async logout(token: string) {
+  public async logout(response: Response, token: string) {
+    // TODO: cookie names from constant
+    response.setHeader('Authorization', '');
+    response.setHeader('Clear-Site-Data', '"cache", "storage"');
+    response.cookie('refresh', '', {
+      httpOnly: true,
+      maxAge: 0,
+    });
+    response.cookie('token', '', {
+      maxAge: 0,
+      httpOnly: true,
+    });
+
     const payload = await this.validateToken(token);
     this.resetTokens(payload.sub);
   }
@@ -200,5 +225,37 @@ export class AuthService {
     }
 
     await this.usersService.createUserAccessRequest(u._id, recipient._id);
+  }
+
+  public setAuthResponseCookieToken(
+    response: Response,
+    accessToken: string,
+    refreshToken?: string,
+  ): void {
+    const IS_DEV = this.config.get<boolean>('IS_DEV');
+    // TODO: get domain from config | cookie name from constant
+    const domain = IS_DEV ? 'localhost' : '.pulsopus.dev';
+    const secure = !IS_DEV;
+    const accessMaxAge = +ms(this.config.get('secret').access.expire || 0);
+    const refreshMaxAge = +ms(this.config.get('secret').refresh.expire || 0);
+
+    response.cookie('token', accessToken, {
+      httpOnly: true,
+      domain,
+      secure,
+      // sameSite: 'none',
+      // maxAge: 3600 * 1000,
+      maxAge: accessMaxAge,
+    });
+    if (refreshToken) {
+      response.cookie('refresh', refreshToken, {
+        httpOnly: true,
+        domain,
+        secure,
+        // sameSite: 'none',
+        maxAge: refreshMaxAge,
+      });
+    }
+    response.setHeader('Authorization', `Bearer ${accessToken}`);
   }
 }

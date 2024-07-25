@@ -9,3 +9,4 @@ export * from './interceptors';
 export * from './jwt';
 export * from './logger';
 export * from './strategy';
+export * from './utils';

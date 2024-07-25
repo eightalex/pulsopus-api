@@ -1,5 +1,10 @@
 import { Response } from 'express';
-import { UsePublic, UserAuthorization } from '@app/common';
+import {
+  JwtRefreshGuard,
+  UsePublic,
+  UserAuthorization,
+  UserAuthorizationRefresh,
+} from '@app/common';
 import { TConfig } from '@app/common';
 import {
   AuthLoginRequestDto,
@@ -17,6 +22,7 @@ import {
   Post,
   Res,
   SerializeOptions,
+  UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -30,17 +36,6 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService<TConfig>,
   ) {}
-
-  private setResponseToken(res: Response, token: string) {
-    // TODO: get domain from config | secure IS_DEV ? false : true
-    res.cookie('token', token, {
-      httpOnly: true,
-      // domain: 'localhost',
-      domain: '.pulsopus.dev',
-      // secure: true,
-    });
-    res.setHeader('Authorization', `Bearer ${token}`);
-  }
 
   // swagger
   @ApiOperation({ summary: 'login by user credential.' })
@@ -63,16 +58,11 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
     const data = await this.authService.signIn(body);
-    this.setResponseToken(res, data.accessToken);
-    // res.setHeader('Authorization', data.accessToken);
-    // res.cookie('refresh', data.refreshToken, {
-    //   httpOnly: true,
-    // });
-    // res.cookie('token', data.accessToken, {
-    //   httpOnly: false,
-    //   // domain: '.app.localhost',
-    //   domain: '127.0.0.1',
-    // });
+    this.authService.setAuthResponseCookieToken(
+      res,
+      data.accessToken,
+      data.refreshToken,
+    );
     return data;
   }
 
@@ -91,17 +81,37 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
     const data = await this.authService.tokenLogin(token);
-    this.setResponseToken(res, data.accessToken);
-    // res.setHeader('Authorization', data.accessToken);
-    // res.cookie('refresh', data.refreshToken, {
-    //   httpOnly: true,
-    //   maxAge: 3600000,
-    // });
-    // res.cookie('token', data.accessToken, {
-    //   httpOnly: false,
-    //   // domain: '.app.localhost',
-    //   domain: '127.0.0.1',
-    // });
+    this.authService.setAuthResponseCookieToken(
+      res,
+      data.accessToken,
+      data.refreshToken,
+    );
+    return data;
+  }
+
+  // swagger
+  @ApiOperation({ summary: 'refresh user tokens.' })
+  @ApiResponse({
+    status: 200,
+    description: 'refresh user OK',
+    type: AuthResponseDto,
+  })
+  // endpoint
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UsePublic()
+  @UseGuards(JwtRefreshGuard)
+  public async refreshToken(
+    @UserAuthorizationRefresh() refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    // TODO: create refresh auth
+    const data = await this.authService.tokenRefresh(refreshToken);
+    this.authService.setAuthResponseCookieToken(
+      res,
+      data.accessToken,
+      data.refreshToken,
+    );
     return data;
   }
 
@@ -118,16 +128,7 @@ export class AuthController {
     @UserAuthorization() token: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    await this.authService.logout(token);
-    res.setHeader('Authorization', '');
-    res.cookie('refresh', '', {
-      httpOnly: true,
-      maxAge: 0,
-    });
-    res.cookie('token', '', {
-      maxAge: 0,
-      httpOnly: true,
-    });
+    await this.authService.logout(res, token);
   }
 
   // swagger
