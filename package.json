@@ -1,6 +1,6 @@
 {
   "name": "pulsopus-api",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "author": "Radchenko Bohdan <radchenkobs@gmail.com>",
   "description": "pulsopus api service monolith",
   "private": true,
