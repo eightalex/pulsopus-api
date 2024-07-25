@@ -8,7 +8,10 @@ export class MailerService {
   constructor(private readonly service: NestMailerService) {}
 
   private dtoMockEmailTo(email: string) {
-    return 'pulsopus.dev+' + email.replace('@pulsopus.dev', '@gmail.com');
+    if (email.includes('pulsopus.dev')) {
+      return 'pulsopus.dev+' + email.replace('@pulsopus.dev', '@gmail.com');
+    }
+    return email;
   }
 
   public async sendUserAccessApproved(params: {
