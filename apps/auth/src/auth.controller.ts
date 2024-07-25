@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { UsePublic, UserAuthorization } from '@app/common';
+import { TConfig } from '@app/common';
 import {
   AuthLoginRequestDto,
   AuthLoginSendRequestDto,
@@ -27,7 +28,7 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly config: ConfigService,
+    private readonly configService: ConfigService<TConfig>,
   ) {}
 
   private setResponseToken(res: Response, token: string) {
@@ -36,7 +37,7 @@ export class AuthController {
       httpOnly: true,
       // domain: 'localhost',
       domain: '.pulsopus.dev',
-      secure: true,
+      // secure: true,
     });
     res.setHeader('Authorization', `Bearer ${token}`);
   }
