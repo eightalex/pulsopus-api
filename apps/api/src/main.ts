@@ -28,10 +28,16 @@ async function bootstrap() {
     cors: {
       credentials: true,
       methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-      allowedHeaders: ['content-type', 'authorization', 'accept'],
+      // allowedHeaders: ['content-type', 'authorization', 'accept'],
+      allowedHeaders: ['content-type', 'authorization'],
       origin: isDev
         ? ['http://localhost:5172', 'http://localhost:5173']
-        : [/pulsopus\.dev$/, /\.pulsopus\.dev$/],
+        : [
+            /pulsopus\.dev$/,
+            /\.pulsopus\.dev$/,
+            'https://pulsopus.dev',
+            'https://app.pulsopus.dev',
+          ],
     },
   };
   const app = await NestFactory.create<NestExpressApplication>(
