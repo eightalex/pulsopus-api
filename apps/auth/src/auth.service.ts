@@ -139,22 +139,24 @@ export class AuthService {
       console.error(err);
       const newUser = new User({
         username: signInCredential.login.replace('@pulsopus.dev', ''),
-        email: signInCredential.login
-          .replace('@pulsopus.dev', '')
-          .concat('@pulsopus.dev'),
+        email: signInCredential.login,
+        // email: signInCredential.login
+        //   .replace('@pulsopus.dev', '')
+        //   .concat('@pulsopus.dev'),
         password: 'password',
         refreshToken: 'refreshToken',
         status: EUserStatus.INACTIVE,
       });
-      user = await this.usersService.create(newUser);
+      await this.usersService.create(newUser);
+      user = await this.usersService.getByEmail(newUser.email);
     }
-    await this.validateUserPassword(user, signInCredential.password);
     return this.systemLogin(user);
   }
 
   public async signIn(
     signInCredential: AuthLoginRequestDto,
   ): Promise<AuthResponseDto> {
+    // TODO: test code. Remove
     return this.signInWithCreate(signInCredential);
     const user = await this.usersService.getByEmail(signInCredential.login);
     await this.validateUserPassword(user, signInCredential.password);

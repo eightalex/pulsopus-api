@@ -1,6 +1,6 @@
 {
   "name": "pulsopus-api",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "author": "Radchenko Bohdan <radchenkobs@gmail.com>",
   "description": "pulsopus api service monolith",
   "private": true,
@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "NODE_ENV=development yarn run start:dev",
-    "debug": "yarn run start:debug",
+    "debug": "NODE_ENV=development yarn run start:debug",
     "prebuild": "chmod ug+x prebuild.sh && sh $PWD/prebuild.sh",
     "build": "nest build",
     "build:digitalocean": "yarn install --production=false && yarn run build && rm -rf node_modules && yarn install --production --frozen-lockfile",
