@@ -24,7 +24,7 @@ export class MigrationService {
     @InjectModel(Department.name)
     private readonly departmentModel: Model<Department>,
   ) {
-    this.initial();
+    // this.initial();
   }
 
   public static calcTrend(value: number, prevValue: number): number {
