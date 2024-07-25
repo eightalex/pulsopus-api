@@ -31,11 +31,12 @@ export class AuthController {
   ) {}
 
   private setResponseToken(res: Response, token: string) {
-    // TODO: get domain from config
+    // TODO: get domain from config | secure IS_DEV ? false : true
     res.cookie('token', token, {
       httpOnly: true,
       // domain: 'localhost',
       domain: '.pulsopus.dev',
+      secure: true,
     });
     res.setHeader('Authorization', `Bearer ${token}`);
   }
