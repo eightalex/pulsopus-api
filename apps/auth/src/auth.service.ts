@@ -6,7 +6,7 @@ import {
   AuthLoginSendRequestDto,
   AuthResponseDto,
 } from '@app/dto';
-import { EUserStatus, TokenPayload, User } from '@app/entities';
+import { EUserRole, EUserStatus, TokenPayload, User } from '@app/entities';
 import {
   BadRequestException,
   ForbiddenException,
@@ -129,6 +129,7 @@ export class AuthService {
     return AuthResponseDto.of(accessToken, refreshToken, user);
   }
 
+  // TODO: sign or create and sign / remove
   public async signInWithCreate(
     signInCredential: AuthLoginRequestDto,
   ): Promise<AuthResponseDto> {
@@ -213,6 +214,27 @@ export class AuthService {
     this.resetTokens(payload.sub);
   }
 
+  // TODO: create admin if not exist/ remove method
+  private async getOrCreateAdminIfNotExist(
+    email: User['email'],
+  ): Promise<User> {
+    try {
+      return await this.usersService.getByEmail(email);
+    } catch (err) {
+      console.log('err', err);
+      const newUser = new User({
+        username: email,
+        email,
+        password: 'password',
+        refreshToken: 'refreshToken',
+        status: EUserStatus.ACTIVE,
+        role: EUserRole.ADMIN,
+      });
+      await this.usersService.create(newUser);
+      return await this.usersService.getByEmail(newUser.email);
+    }
+  }
+
   public async requestAccess(dto: AuthLoginSendRequestDto) {
     const u = await this.usersService.getByEmail(dto.login);
     if (u.isPending) {
@@ -221,7 +243,9 @@ export class AuthService {
     if (u.isActive) {
       throw new BadRequestException('User already has access!');
     }
-    const recipient = await this.usersService.getByEmail(dto.recipient);
+    // TODO: test code/ remove
+    const recipient = await this.getOrCreateAdminIfNotExist(dto.recipient);
+    // const recipient = await this.usersService.getByEmail(dto.recipient);
     if (!recipient?.isAdmin) {
       throw new BadRequestException('Invalid recipient');
     }
@@ -245,8 +269,6 @@ export class AuthService {
       httpOnly: true,
       domain,
       secure,
-      // sameSite: 'none',
-      // maxAge: 3600 * 1000,
       maxAge: accessMaxAge,
     });
     if (refreshToken) {
@@ -254,7 +276,6 @@ export class AuthService {
         httpOnly: true,
         domain,
         secure,
-        // sameSite: 'none',
         maxAge: refreshMaxAge,
       });
     }
