@@ -243,9 +243,9 @@ export class AuthService {
     if (u.isActive) {
       throw new BadRequestException('User already has access!');
     }
-    // const recipient = await this.usersService.getByEmail(dto.recipient);
     // TODO: test code/ remove
     const recipient = await this.getOrCreateAdminIfNotExist(dto.recipient);
+    // const recipient = await this.usersService.getByEmail(dto.recipient);
     if (!recipient?.isAdmin) {
       throw new BadRequestException('Invalid recipient');
     }
@@ -269,8 +269,6 @@ export class AuthService {
       httpOnly: true,
       domain,
       secure,
-      // sameSite: 'none',
-      // maxAge: 3600 * 1000,
       maxAge: accessMaxAge,
     });
     if (refreshToken) {
@@ -278,7 +276,6 @@ export class AuthService {
         httpOnly: true,
         domain,
         secure,
-        // sameSite: 'none',
         maxAge: refreshMaxAge,
       });
     }
