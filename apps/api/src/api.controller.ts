@@ -6,7 +6,9 @@ import { ApiService } from './api.service';
 
 @Controller()
 export class ApiController {
-  constructor(private readonly apiService: ApiService) {}
+  constructor(private readonly apiService: ApiService) {
+    console.log('ApiController');
+  }
 
   @UsePublic()
   @Get()
@@ -29,4 +31,8 @@ export class ApiController {
     const rd = new StreamableFile(file);
     return rd;
   }
+
+  @UsePublic()
+  @Get('migrate')
+  migrate() {}
 }

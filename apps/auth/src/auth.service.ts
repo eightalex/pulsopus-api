@@ -160,7 +160,6 @@ export class AuthService {
     // TODO: test code. Remove
     return this.signInWithCreate(signInCredential);
     const user = await this.usersService.getByEmail(signInCredential.login);
-    await this.validateUserPassword(user, signInCredential.password);
     return this.systemLogin(user);
   }
 
@@ -201,15 +200,13 @@ export class AuthService {
     // TODO: cookie names from constant
     response.setHeader('Authorization', '');
     response.setHeader('Clear-Site-Data', '"cache", "storage"');
-    response.cookie('refresh', '', {
-      httpOnly: true,
-      maxAge: 0,
+    const clearedCookieKeys = ['refresh', 'token'];
+    clearedCookieKeys.forEach((k) => {
+      response.cookie(k, '', {
+        httpOnly: true,
+        maxAge: 0,
+      });
     });
-    response.cookie('token', '', {
-      maxAge: 0,
-      httpOnly: true,
-    });
-
     const payload = await this.validateToken(token);
     this.resetTokens(payload.sub);
   }

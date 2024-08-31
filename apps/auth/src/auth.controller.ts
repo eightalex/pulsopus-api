@@ -128,7 +128,9 @@ export class AuthController {
     @UserAuthorization() token: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
+    console.time('logout time');
     await this.authService.logout(res, token);
+    console.timeEnd('logout time');
   }
 
   // swagger
@@ -152,7 +154,6 @@ export class AuthController {
   public testEmail(@Param() param: { login: string }) {
     return this.authService.signIn({
       login: param.login,
-      password: 'password',
     });
   }
 }

@@ -24,7 +24,7 @@ export class MigrationService {
     @InjectModel(Department.name)
     private readonly departmentModel: Model<Department>,
   ) {
-    // this.initial();
+    this.initial();
   }
 
   public static calcTrend(value: number, prevValue: number): number {
@@ -234,6 +234,8 @@ export class MigrationService {
   }
 
   private async initial() {
+    console.time('MIGRATED');
+    console.log('MIGRATED START');
     await this.dropCollections();
 
     await this.createStockData();
@@ -243,5 +245,6 @@ export class MigrationService {
     await this.computeData();
 
     console.log('MIGRATED END');
+    console.timeEnd('MIGRATED');
   }
 }
