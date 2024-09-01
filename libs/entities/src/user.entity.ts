@@ -1,13 +1,22 @@
-import { Exclude, Expose, Transform } from 'class-transformer';
+import * as bcrypt from 'bcrypt';
+import { Exclude, Expose } from 'class-transformer';
 import * as moment from 'moment';
 import { HydratedDocument, Types } from 'mongoose';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { UserResponseDto } from '@app/dto';
-import { Activity, Department } from '@app/entities';
+import { UuidTimestampEntity } from '@app/entities/abstracts/uuid-timestamp.entity';
 import { USER_GROUP } from '@app/entities/constants/groupsNames';
+import {
+  Department,
+  EAccessRequestStatus,
+  UserAccessRequest,
+} from '@app/entities/index';
+import { UserActivity } from '@app/entities/user-activity.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { EUserRole, EUserStatus } from './constants';
 
+@Entity('users')
 @Schema({
   collection: 'users',
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
@@ -15,67 +24,88 @@ import { EUserRole, EUserStatus } from './constants';
   toJSON: { getters: true, virtuals: true },
   toObject: { getters: true, virtuals: true },
 })
-export class User {
-  @Exclude()
-  private created_at: string;
-
-  @Exclude()
-  private updated_at: string;
-
-  @Exclude()
-  __v: number;
-
-  @Exclude({ toPlainOnly: true })
-  _id!: Types.ObjectId;
-  id!: string;
+export class User extends UuidTimestampEntity {
+  @Prop()
+  @Column({ unique: true, nullable: false })
+  public readonly email: string;
 
   @Prop()
-  public username: string;
+  @Column({ nullable: false })
+  public readonly username: string;
 
-  @Prop()
-  public email: string;
-
-  @Exclude({ toPlainOnly: true })
+  @Exclude({ toClassOnly: true })
+  @Column({ nullable: false })
   @Prop({ required: false })
-  public password?: string;
+  public readonly password?: string;
 
-  @Exclude({ toPlainOnly: true })
+  @Column()
   @Prop({ required: false })
-  public refreshToken?: string;
+  public readonly avatar?: string = '';
 
+  @Exclude({ toClassOnly: true })
   @Prop({ required: false })
-  public avatar?: string;
+  public readonly refreshToken?: string;
 
   @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
+  @Column({ type: 'enum', enum: EUserRole, default: EUserRole.VIEWER })
   @Prop({ type: String, enum: EUserRole, default: EUserRole.VIEWER })
-  public role: EUserRole = EUserRole.VIEWER;
+  public readonly role: EUserRole = EUserRole.VIEWER;
+
+  @Exclude({ toClassOnly: true })
+  @OneToMany(
+    () => UserAccessRequest,
+    (accessRequest) => accessRequest.requester,
+    {
+      eager: true,
+    },
+  )
+  public readonly sentAccessRequests: UserAccessRequest[];
+
+  @Exclude({ toClassOnly: true })
+  @OneToMany(
+    () => UserAccessRequest,
+    (accessRequest) => accessRequest.requestedUser,
+    { eager: true },
+  )
+  public readonly receivedAccessRequests: UserAccessRequest[];
+
+  @Expose({ groups: [USER_GROUP.LIST] })
+  @Column({ default: false, name: 'is_active', type: 'boolean' })
+  public isActive: boolean = false;
+
+  // @Prop({ type: Map, of: Object, default: {} })
+  // activities: Map<number, Activity>;
+  @OneToMany(() => UserActivity, (activity) => activity.user)
+  activities: UserActivity[];
+
+  //
+  @Exclude({ toPlainOnly: true })
+  _id!: Types.ObjectId;
 
   @Prop({ type: String, enum: EUserStatus, default: EUserStatus.INACTIVE })
   public status: EUserStatus = EUserStatus.INACTIVE;
 
-  @Transform(({ value: department }: { value?: Department }) => {
-    if (!department) return null;
-    return {
-      id: department?.id,
-      value: department?.value,
-      label: department?.label,
-    };
-  })
-  @Prop({ type: Types.ObjectId, ref: Department.name })
+  // @Transform(({ value: department }: { value?: Department }) => {
+  //   if (!department) return null;
+  //   return {
+  //     id: department?.id,
+  //     value: department?.value,
+  //     label: department?.label,
+  //   };
+  // })
+  // @Prop({ type: Types.ObjectId, ref: Department.name })
   department?: Department;
 
   @Prop()
   public position?: string;
-
-  @Prop({ type: Map, of: Object, default: {} })
-  activities: Map<number, Activity>;
 
   @Exclude()
   @Prop({ type: String })
   accessRequestAdminId: User['_id'];
 
   constructor(partial: Partial<User>) {
-    Object.assign(this, partial);
+    super();
+    Object.assign(this as Partial<User>, partial);
   }
 
   @ApiProperty({ type: () => Number })
@@ -90,21 +120,12 @@ export class User {
     return moment(this.updated_at).valueOf();
   }
 
-  public async validatePassword(password: string): Promise<boolean> {
-    return password === this.password;
-  }
-
   public isRole(role: EUserRole): boolean {
     return this.role === role;
   }
 
   public isStatus(status: EUserStatus): boolean {
     return this.status === status;
-  }
-
-  @Expose({ groups: [USER_GROUP.LIST] })
-  public get isActive(): boolean {
-    return this.isStatus(EUserStatus.ACTIVE);
   }
 
   @Expose({ groups: [USER_GROUP.LIST] })
@@ -126,6 +147,30 @@ export class User {
     return UserResponseDto.of(userDocument);
     // console.log('userDocument.toObject()', userDocument.toObject());
     // return plainToInstance(User, userDocument.toObject());
+  }
+
+  public get hasPendingUserAccessRequest(): boolean {
+    return (
+      this.sentAccessRequests?.some(
+        (request) => request.status === EAccessRequestStatus.PENDING,
+      ) ?? false
+    );
+  }
+
+  public async comparePassword(password: string): Promise<boolean> {
+    return bcrypt.compare(password, this.password);
+  }
+
+  private async hashingPassword() {
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    return bcrypt.hash(this.password, salt);
+  }
+
+  static async create(partial: Partial<User>): Promise<User> {
+    const user = new User(partial);
+    await user.hashingPassword();
+    return user;
   }
 }
 

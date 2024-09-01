@@ -8,7 +8,7 @@ export class TokenPayload {
   isActive: User['isActive'];
 
   constructor(partial: Partial<TokenPayload>) {
-    Object.assign(this, partial);
+    Object.assign(this as Partial<TokenPayload>, partial);
   }
 
   public toPlainObject(): typeof TokenPayload {
@@ -17,7 +17,7 @@ export class TokenPayload {
 
   static of(user: User): TokenPayload {
     return new TokenPayload({
-      sub: user._id.toHexString(),
+      sub: user.id,
       username: user.username,
       role: user.role,
       status: user.status,

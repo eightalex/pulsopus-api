@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { Repository } from 'typeorm';
 import { DatabaseService } from '@app/database/database.service';
 import {
   UserResponseDto,
@@ -7,31 +7,30 @@ import {
 } from '@app/dto';
 import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
 import {
-  EAccessRequestDecision,
   EUserRole,
-  EUserStatus,
   TokenPayload,
   User,
+  UserAccessRequest,
 } from '@app/entities';
 import { MailerService } from '@app/mailer';
 import {
   BadRequestException,
-  ForbiddenException,
-  HttpException,
-  HttpStatus,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
+
   constructor(
-    @InjectModel(User.name)
-    private readonly userModel: Model<User>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(UserAccessRequest)
+    private readonly userAccessRequestRepository: Repository<UserAccessRequest>,
     private readonly databaseService: DatabaseService,
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
@@ -48,11 +47,11 @@ export class UsersService {
   }
 
   public async create(user: User): Promise<User> {
-    return this.userModel.create(user);
+    return this.userRepository.save(user);
   }
 
   public async getById(id: User['id']): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.userRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -60,9 +59,33 @@ export class UsersService {
   }
 
   public async getByEmail(email: User['email']): Promise<User> {
-    const user = await this.userModel.findOne({ email }).exec();
+    const user = await this.userRepository.findOneBy({ email });
     if (!user) {
       throw new NotFoundException('User not found!');
+    }
+    return user;
+  }
+
+  public async getOrCreateDefaultByEmail(
+    email: User['email'],
+    partial: Partial<User> = {},
+  ): Promise<User> {
+    let user: User | null = null;
+    try {
+      user = await this.getByEmail(email);
+    } catch (error) {
+      const defaultUser: Partial<User> = {
+        isActive: false,
+        role: EUserRole.VIEWER,
+        password: 'password',
+        ...partial,
+      };
+      const newUser = await User.create({
+        email,
+        username: email.replace(/@.\S+$/, ''),
+        ...defaultUser,
+      });
+      user = await this.create(newUser);
     }
     return user;
   }
@@ -79,76 +102,85 @@ export class UsersService {
     if (!role) {
       throw new BadRequestException('Unexpected exception. No user role');
     }
-    if (role !== EUserRole.ADMIN) {
-      const us = await this.userModel
-        .find({ status: EUserStatus.ACTIVE })
-        .exec();
-      return us.map((u) => u.response());
-    }
-
-    const us = await this.userModel
-      .find({
-        $or: [
-          { status: EUserStatus.ACTIVE },
-          {
-            $and: [
-              { accessRequestAdminId: tokenPayload.sub },
-              { status: EUserStatus.PENDING },
-            ],
-          },
-        ],
-      })
-      .sort({
-        status: -1,
-        role: 1,
-        username: 1,
-        updated_at: 1,
-      })
-      .exec();
-    return us.map((u) => User.response(u));
+    const users = await this.userRepository.find();
+    return users.map(UserResponseDto.of);
+    // if (role !== EUserRole.ADMIN) {
+    //   const us = await this.userRepository
+    //     .find({ status: EUserStatus.ACTIVE })
+    //     .exec();
+    //   return us.map((u) => u.response());
+    // }
+    //
+    // const us = await this.userRepository
+    //   .find({
+    //     $or: [
+    //       { status: EUserStatus.ACTIVE },
+    //       {
+    //         $and: [
+    //           { accessRequestAdminId: tokenPayload.sub },
+    //           { status: EUserStatus.PENDING },
+    //         ],
+    //       },
+    //     ],
+    //   })
+    //   .sort({
+    //     status: -1,
+    //     role: 1,
+    //     username: 1,
+    //     updated_at: 1,
+    //   })
+    //   .exec();
+    // return us.map((u) => User.response(u));
   }
 
   public async updateUserByIdDto(
     id: User['id'],
     dto: UsersUpdateBodyRequestDto,
   ): Promise<UserResponseDto> {
-    const user = await this.userModel.findByIdAndUpdate(id, { ...dto }).exec();
-    return UserResponseDto.of(user);
+    const u = await this.getById(id);
+    return UserResponseDto.of(u);
+    // const user = await this.userRepository
+    //   .findByIdAndUpdate(id, { ...dto })
+    //   .exec();
+    // return UserResponseDto.of(user);
   }
 
   public async deleteUsers(
     params: UsersDeleteRequestDto,
     tokePayload: TokenPayload,
   ): Promise<void> {
-    const u = await this.getById(tokePayload.sub);
-    if (!u || !u.isActive || !u.isAdmin) {
-      throw new ForbiddenException('No permission');
-    }
-    await this.userModel.deleteMany({ _id: { $in: params.ids } });
+    // const u = await this.getById(tokePayload.sub);
+    // if (!u || !u.isActive || !u.isAdmin) {
+    //   throw new ForbiddenException('No permission');
+    // }
+    // await this.userRepository.deleteMany({ _id: { $in: params.ids } });
   }
 
   public async createUserAccessRequest(
-    fromId: User['_id'],
-    toId: User['_id'],
-  ): Promise<UserResponseDto> {
-    try {
-      const u = await this.userModel.findById(fromId).exec();
-      u.accessRequestAdminId = toId;
-      u.status = EUserStatus.PENDING;
-      await u.save();
+    requesterId: User['id'],
+    requestedUserId: User['id'],
+  ): Promise<void> {
+    const requester = await this.getById(requesterId);
+    const requestedUser = await this.getById(requestedUserId);
 
-      const admin = await this.userModel.findById(toId).exec();
+    try {
+      await this.userAccessRequestRepository.save(
+        UserAccessRequest.create({
+          requester,
+          requestedUser,
+        }),
+      );
+
       await this.mailerService.sendAccessRequestForAdmin({
-        to: admin.email,
-        adminName: admin.username,
-        userName: u.username,
+        to: requestedUser.email,
+        adminName: requestedUser.username,
+        userName: requester.username,
         loginLink: this.clientAppUrl,
         approveLink: this.clientUrl,
         denyLink: this.clientUrl,
       });
-      return u.response();
-    } catch (err) {
-      this.logger.error(err);
+    } catch (error) {
+      this.logger.error(error);
     }
   }
 
@@ -157,64 +189,35 @@ export class UsersService {
     body: UsersAccessRequestBodyRequestDto,
     tokenPayload: TokenPayload,
   ): Promise<void> {
-    try {
-      const user = await this.userModel
-        .findOne({
-          _id: fromId,
-          accessRequestAdminId: tokenPayload.sub,
-        })
-        .exec();
-      user.accessRequestAdminId = null;
-
-      if (body.decision === EAccessRequestDecision.ACCEPT) {
-        user.status = EUserStatus.ACTIVE;
-        await this.mailerService.sendUserAccessApproved({
-          to: user.email,
-          userName: user.username,
-          loginLink: this.clientUrl,
-        });
-      } else {
-        user.status = EUserStatus.INACTIVE;
-        await this.mailerService.sendUserAccessRejected({
-          to: user.email,
-          userName: user.username,
-        });
-      }
-      await user.save();
-    } catch (err) {
-      throw new HttpException(
-        'Oops... Something wrong!',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  public async test() {
-    try {
-      const u = await this.userModel.findOne({ username: 'user test' }).exec();
-      const admin = await this.userModel
-        .findOne({ username: 'admin test' })
-        .exec();
-      const sendAdmin = this.mailerService.sendAccessRequestForAdmin({
-        to: admin.email,
-        adminName: admin.username,
-        userName: u.username,
-        loginLink: this.clientUrl,
-        approveLink: this.clientUrl,
-        denyLink: this.clientUrl,
-      });
-      const sendUserApprove = this.mailerService.sendUserAccessApproved({
-        to: u.email,
-        userName: u.username,
-        loginLink: this.clientUrl,
-      });
-      const sendUserReject = this.mailerService.sendUserAccessRejected({
-        to: u.email,
-        userName: u.username,
-      });
-      return await Promise.all([sendAdmin, sendUserApprove, sendUserReject]);
-    } catch (err) {
-      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    // try {
+    //   const user = await this.userRepository
+    //     .findOne({
+    //       _id: fromId,
+    //       accessRequestAdminId: tokenPayload.sub,
+    //     })
+    //     .exec();
+    //   user.accessRequestAdminId = null;
+    //
+    //   if (body.decision === EAccessRequestDecision.ACCEPT) {
+    //     user.status = EUserStatus.ACTIVE;
+    //     await this.mailerService.sendUserAccessApproved({
+    //       to: user.email,
+    //       userName: user.username,
+    //       loginLink: this.clientUrl,
+    //     });
+    //   } else {
+    //     user.status = EUserStatus.INACTIVE;
+    //     await this.mailerService.sendUserAccessRejected({
+    //       to: user.email,
+    //       userName: user.username,
+    //     });
+    //   }
+    //   await user.save();
+    // } catch (err) {
+    //   throw new HttpException(
+    //     'Oops... Something wrong!',
+    //     HttpStatus.INTERNAL_SERVER_ERROR,
+    //   );
+    // }
   }
 }

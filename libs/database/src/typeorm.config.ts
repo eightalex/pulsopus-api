@@ -7,9 +7,9 @@ import { entities } from './database.entities';
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   constructor(private readonly config: ConfigService) {}
 
-  public createTypeOrmOptions(
-    connectionName?: string,
-  ): Promise<TypeOrmModuleOptions> | TypeOrmModuleOptions {
+  public createTypeOrmOptions():
+    | Promise<TypeOrmModuleOptions>
+    | TypeOrmModuleOptions {
     const db = this.config.get('db.pg');
     return {
       type: 'postgres',

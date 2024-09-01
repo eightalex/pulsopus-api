@@ -15,7 +15,7 @@ import { UsersModule } from '@/users/src/users.module';
     AuthModule,
     JwtModule,
     UsersModule,
-    DepartmentsModule,
+    // DepartmentsModule,
   ],
   controllers: [ApiController],
   providers: [ApiService],

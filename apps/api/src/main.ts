@@ -77,10 +77,15 @@ async function bootstrap() {
   };
   SwaggerModule.setup('/api', app, document, swaggerOptions);
 
+  app.useLogger(app.get(Logger));
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new TokenResponseInterceptor(authService));
+  // app.useGlobalInterceptors(
+  //   new ClassSerializerInterceptor(app.get(Reflector), {
+  //     enableCircularCheck: true,
+  //   }),
+  // );
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
       enableCircularCheck: true,

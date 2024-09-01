@@ -15,10 +15,11 @@ export class UserResponseDto {
   public isAdmin: boolean;
   public createdAt: number;
   public updatedAt: number;
-  constructor(partial: Partial<UserResponseDto>) {
-    Object.assign(this, partial);
+  private constructor(partial: Partial<UserResponseDto>) {
+    Object.assign(this as Partial<UserResponseDto>, partial);
   }
 
+  static of(userDocument: User): UserResponseDto;
   static of(userDocument: UserDocument): UserResponseDto {
     const activity = [...userDocument.activities.values()].sort(
       (p, n) => p.date - n.date,

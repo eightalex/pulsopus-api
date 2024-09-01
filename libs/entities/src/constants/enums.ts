@@ -9,6 +9,7 @@ export enum EUserRole {
   VIEWER = 'VIEWER',
   ADMIN = 'ADMIN',
 }
+
 export enum EDepartment {
   COMPANY = 'COMPANY',
   DEVELOPMENT = 'DEVELOPMENT',
@@ -28,8 +29,9 @@ export enum EPosition {
 }
 
 export enum EAccessRequestStatus {
-  ACTIVE = 'ACTIVE',
-  CLOSE = 'CLOSE',
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
 }
 
 export enum EAccessRequestDecision {
