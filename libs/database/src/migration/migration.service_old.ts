@@ -1,15 +1,7 @@
 import { Connection, Model } from 'mongoose';
-import { Repository } from 'typeorm';
-import {
-  Activity,
-  Department,
-  EDepartment,
-  User,
-  UserActivity,
-} from '@app/entities';
+import { Activity, Department, EDepartment, User } from '@app/entities';
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { InjectRepository } from '@nestjs/typeorm';
 import { CsvUserData, presetsUsers } from './csv-user-data';
 
 const sortCompareObjectKeys = (
@@ -24,31 +16,14 @@ const sortCompareObjectKeys = (
 @Injectable()
 export class MigrationService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(UserActivity)
-    private readonly userActivityRepository: Repository<UserActivity>,
-    // @InjectConnection()
-    // private readonly connection: Connection,
-    // @InjectModel(User.name)
-    // private readonly userModel: Model<User>,
-    // @InjectModel(Department.name)
-    // private readonly departmentModel: Model<Department>,
+    @InjectConnection()
+    private readonly connection: Connection,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+    @InjectModel(Department.name)
+    private readonly departmentModel: Model<Department>,
   ) {
-    this.initial();
-  }
-
-  private async drop() {
-    // const users = await this.userRepository.find();
-    // for (const user of users) {
-    //   await this.userRepository.delete({id: user.id});
-    // }
-    // await this.userRepository
-    //   .createQueryBuilder('users')
-    //   .delete()
-    //   .where('id IN (:...id)', { id: users.map(({ id }) => id) })
-    //   .execute();
-    console.log('DELETE ROWS OF TABLES');
+    // this.initial();
   }
 
   // public static calcTrend(value: number, prevValue: number): number {
@@ -86,60 +61,44 @@ export class MigrationService {
   //     await this.departmentModel.create(dep);
   //   }
   // }
-
-  private async createStockUsers() {
-    const readedUserInstances = await new CsvUserData().getParsedCsvData();
-    // const usersForCreate = [...readedUserInstances, ...presetsUsers];
-    const usersForCreate = [
-      ...new Map(
-        [...readedUserInstances, ...presetsUsers].map((u) => [u['email'], u]),
-      ).values(),
-    ];
-
-    for (const userForCreate of usersForCreate) {
-      const { activity, ...u } = userForCreate;
-      const user = await this.userRepository.save(await User.create(u));
-
-      for (const key in activity) {
-        const act = UserActivity.of({
-          date: Number(key),
-          value: activity[key],
-          user,
-        });
-        await this.userActivityRepository.save(act);
-      }
-      // const depValue = userForCreate.department;
-      // const department = await this.departmentModel.findOne({
-      //   value: depValue,
-      // });
-      // const company = await this.departmentModel.findOne({
-      //   value: EDepartment.COMPANY,
-      // });
-      //
-      // const activities = Object.entries(userForCreate.activity || {})
-      //   .sort(sortCompareObjectKeys)
-      //   .reduce((acc, [d, v], idx, arr) => {
-      //     const date = Number(d);
-      //     const trend = MigrationService.calcTrend(v, arr[idx - 1]?.[1]);
-      //     acc[date] = Activity.of(date, v, -1, trend);
-      //     return acc;
-      //   }, {});
-      // const u = await this.userModel.create({
-      //   ...userForCreate,
-      //   department,
-      //   activities,
-      // });
-      // if (department) {
-      //   department.userIds.push(u._id);
-      //   await department.save();
-      // }
-      // if (company) {
-      //   company.userIds.push(u._id);
-      //   await company.save();
-      // }
-    }
-  }
-
+  //
+  // private async createStockUsers() {
+  //   const usrsReaded = await new CsvUserData().readFile();
+  //   const readedUserInstances = usrsReaded.map((r) => parseCsvData(r));
+  //   const usersForCreate = [...readedUserInstances, ...presetsUsers];
+  //   for (const user of usersForCreate) {
+  //     const depValue = user.department;
+  //     const department = await this.departmentModel.findOne({
+  //       value: depValue,
+  //     });
+  //     const company = await this.departmentModel.findOne({
+  //       value: EDepartment.COMPANY,
+  //     });
+  //
+  //     const activities = Object.entries(user.activity || {})
+  //       .sort(sortCompareObjectKeys)
+  //       .reduce((acc, [d, v], idx, arr) => {
+  //         const date = Number(d);
+  //         const trend = MigrationService.calcTrend(v, arr[idx - 1]?.[1]);
+  //         acc[date] = Activity.of(date, v, -1, trend);
+  //         return acc;
+  //       }, {});
+  //     const u = await this.userModel.create({
+  //       ...user,
+  //       department,
+  //       activities,
+  //     });
+  //     if (department) {
+  //       department.userIds.push(u._id);
+  //       await department.save();
+  //     }
+  //     if (company) {
+  //       company.userIds.push(u._id);
+  //       await company.save();
+  //     }
+  //   }
+  // }
+  //
   // private async createStockData() {
   //   await this.createStockDepartments();
   //   await this.createStockUsers();
@@ -272,24 +231,19 @@ export class MigrationService {
   //   await this.computeDepartmentsRate();
   //   await this.computeUsersRate();
   // }
-
-  private async initial() {
-    console.time('MIGRATED');
-    console.log('MIGRATED START');
-
-    // await this.drop();
-
-    // await this.createStockUsers();
-
-    // await this.dropCollections();
-    //
-    // await this.createStockData();
-    //
-    // await this.fillDepartmentActivities();
-    //
-    // await this.computeData();
-
-    console.log('MIGRATED END');
-    console.timeEnd('MIGRATED');
-  }
+  //
+  // private async initial() {
+  //   console.time('MIGRATED');
+  //   console.log('MIGRATED START');
+  //   await this.dropCollections();
+  //
+  //   await this.createStockData();
+  //
+  //   await this.fillDepartmentActivities();
+  //
+  //   await this.computeData();
+  //
+  //   console.log('MIGRATED END');
+  //   console.timeEnd('MIGRATED');
+  // }
 }

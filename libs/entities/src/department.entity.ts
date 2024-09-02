@@ -27,7 +27,7 @@ export class Department {
   public label: string;
 
   @Prop({ type: [Types.ObjectId], ref: 'User' })
-  public userIds: User['_id'][] = [];
+  public userIds: User['id'][] = [];
 
   public users: User[] = [];
 

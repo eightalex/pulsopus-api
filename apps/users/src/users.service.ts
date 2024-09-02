@@ -185,7 +185,7 @@ export class UsersService {
   }
 
   public async setUserAccessRequestDecision(
-    fromId: User['_id'],
+    fromId: User['id'],
     body: UsersAccessRequestBodyRequestDto,
     tokenPayload: TokenPayload,
   ): Promise<void> {

@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import { Exclude, Expose } from 'class-transformer';
 import * as moment from 'moment';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { Column, Entity, OneToMany } from 'typeorm';
 import { UserResponseDto } from '@app/dto';
 import { UuidTimestampEntity } from '@app/entities/abstracts/uuid-timestamp.entity';
@@ -12,43 +12,31 @@ import {
   UserAccessRequest,
 } from '@app/entities/index';
 import { UserActivity } from '@app/entities/user-activity.entity';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { EUserRole, EUserStatus } from './constants';
 
 @Entity('users')
-@Schema({
-  collection: 'users',
-  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
-  versionKey: false,
-  toJSON: { getters: true, virtuals: true },
-  toObject: { getters: true, virtuals: true },
-})
 export class User extends UuidTimestampEntity {
-  @Prop()
   @Column({ unique: true, nullable: false })
   public readonly email: string;
 
-  @Prop()
   @Column({ nullable: false })
   public readonly username: string;
 
   @Exclude({ toClassOnly: true })
   @Column({ nullable: false })
-  @Prop({ required: false })
   public readonly password?: string;
 
   @Column()
-  @Prop({ required: false })
   public readonly avatar?: string = '';
 
   @Exclude({ toClassOnly: true })
-  @Prop({ required: false })
   public readonly refreshToken?: string;
 
   @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
   @Column({ type: 'enum', enum: EUserRole, default: EUserRole.VIEWER })
-  @Prop({ type: String, enum: EUserRole, default: EUserRole.VIEWER })
+  // @Prop({ type: String, enum: EUserRole, default: EUserRole.VIEWER })
   public readonly role: EUserRole = EUserRole.VIEWER;
 
   @Exclude({ toClassOnly: true })
@@ -78,11 +66,7 @@ export class User extends UuidTimestampEntity {
   @OneToMany(() => UserActivity, (activity) => activity.user)
   activities: UserActivity[];
 
-  //
-  @Exclude({ toPlainOnly: true })
-  _id!: Types.ObjectId;
-
-  @Prop({ type: String, enum: EUserStatus, default: EUserStatus.INACTIVE })
+  // @Prop({ type: String, enum: EUserStatus, default: EUserStatus.INACTIVE })
   public status: EUserStatus = EUserStatus.INACTIVE;
 
   // @Transform(({ value: department }: { value?: Department }) => {
@@ -94,14 +78,12 @@ export class User extends UuidTimestampEntity {
   //   };
   // })
   // @Prop({ type: Types.ObjectId, ref: Department.name })
-  department?: Department;
+  // department?: Department;
 
-  @Prop()
   public position?: string;
 
   @Exclude()
-  @Prop({ type: String })
-  accessRequestAdminId: User['_id'];
+  accessRequestAdminId: User['id'];
 
   constructor(partial: Partial<User>) {
     super();

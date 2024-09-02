@@ -6,9 +6,7 @@ import { ApiService } from './api.service';
 
 @Controller()
 export class ApiController {
-  constructor(private readonly apiService: ApiService) {
-    console.log('ApiController');
-  }
+  constructor(private readonly apiService: ApiService) {}
 
   @UsePublic()
   @Get()

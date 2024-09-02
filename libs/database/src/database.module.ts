@@ -28,7 +28,7 @@ import { TypeOrmConfigService } from './typeorm.config';
       useClass: TypeOrmConfigService,
     }),
     TypeOrmModule.forFeature(entities),
-    // forwardRef(() => MigrationModule),
+    forwardRef(() => MigrationModule),
   ],
   providers: [DatabaseService],
   // exports: [MongooseModule, DatabaseService],

@@ -53,7 +53,7 @@ export class UsersController {
   @UseRoles(EUserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   public async acceptPending(
-    @Param() params: { id: User['_id'] },
+    @Param() params: { id: User['id'] },
     @Body() body: UsersAccessRequestBodyRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<void> {

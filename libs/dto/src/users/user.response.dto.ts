@@ -32,12 +32,14 @@ export class UserResponseDto {
       avatar: userDocument.avatar,
       role: userDocument.role,
       status: userDocument.status,
-      department: userDocument.department
-        ? {
-            value: userDocument.department.value,
-            label: userDocument.department.label,
-          }
-        : null,
+      // TODO: return department
+      department: null,
+      // department: userDocument.department
+      //   ? {
+      //       value: userDocument.department.value,
+      //       label: userDocument.department.label,
+      //     }
+      //   : null,
       activity,
       position: userDocument.position,
       isPending: userDocument.isPending,
