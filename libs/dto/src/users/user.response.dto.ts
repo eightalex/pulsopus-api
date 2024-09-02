@@ -1,4 +1,4 @@
-import { Activity, Department, User, UserDocument } from '@app/entities';
+import { Activity, Department, User } from '@app/entities';
 
 export class UserResponseDto {
   public id: User['id'];
@@ -19,34 +19,33 @@ export class UserResponseDto {
     Object.assign(this as Partial<UserResponseDto>, partial);
   }
 
-  static of(userDocument: User): UserResponseDto;
-  static of(userDocument: UserDocument): UserResponseDto {
-    const activity = [...userDocument.activities.values()].sort(
+  static of(user: User): UserResponseDto {
+    const activity = [...user.activities.values()].sort(
       (p, n) => p.date - n.date,
     );
 
     return new UserResponseDto({
-      id: userDocument._id.toHexString(),
-      username: userDocument.username,
-      email: userDocument.email,
-      avatar: userDocument.avatar,
-      role: userDocument.role,
-      status: userDocument.status,
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+      role: user.role,
+      status: user.status,
       // TODO: return department
       department: null,
-      // department: userDocument.department
+      // department: user.department
       //   ? {
-      //       value: userDocument.department.value,
-      //       label: userDocument.department.label,
+      //       value: user.department.value,
+      //       label: user.department.label,
       //     }
       //   : null,
       activity,
-      position: userDocument.position,
-      isPending: userDocument.isPending,
-      isActive: userDocument.isActive,
-      isAdmin: userDocument.isAdmin,
-      createdAt: userDocument.createdAt,
-      updatedAt: userDocument.updatedAt,
+      position: user.position,
+      isPending: user.isPending,
+      isActive: user.isActive,
+      isAdmin: user.isAdmin,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     });
   }
 }

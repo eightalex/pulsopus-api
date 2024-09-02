@@ -1,12 +1,13 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, JoinTable, ManyToOne } from 'typeorm';
+import { Column, Entity, Index, JoinTable, ManyToOne } from 'typeorm';
 import { User } from '@app/entities';
 import { IdTimestampEntity } from '@app/entities/abstracts/id-timestamp.entity';
-import { EAccessRequestStatus } from './constants/enums';
+import { EAccessRequestStatus } from '../constants/enums';
 
 @Entity('user_access_requests')
 export class UserAccessRequest extends IdTimestampEntity {
   @Exclude({ toClassOnly: true })
+  @Index()
   @ManyToOne(() => User, (user) => user.sentAccessRequests, {
     nullable: false,
   })
@@ -14,6 +15,7 @@ export class UserAccessRequest extends IdTimestampEntity {
   public readonly requester: User;
 
   @Exclude({ toClassOnly: true })
+  @Index()
   @ManyToOne(() => User, (user) => user.receivedAccessRequests, {
     nullable: false,
   })
@@ -26,14 +28,14 @@ export class UserAccessRequest extends IdTimestampEntity {
     enum: EAccessRequestStatus,
     default: EAccessRequestStatus.PENDING,
   })
-  public status: EAccessRequestStatus;
+  public status: EAccessRequestStatus = EAccessRequestStatus.PENDING;
 
-  private constructor(partial: Partial<UserAccessRequest>) {
+  constructor(partial: Partial<UserAccessRequest>) {
     super();
     Object.assign(this as Partial<UserAccessRequest>, partial);
   }
 
-  static create(partial: Partial<UserAccessRequest>) {
+  static of(partial: Partial<UserAccessRequest>) {
     return new UserAccessRequest(partial);
   }
 }

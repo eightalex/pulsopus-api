@@ -1,15 +1,14 @@
-import { Connection, Model } from 'mongoose';
-import { Repository } from 'typeorm';
 import {
   Activity,
   Department,
   EDepartment,
   User,
+  UserAccessRequestRepository,
   UserActivity,
+  UserActivityRepository,
+  UserRepository,
 } from '@app/entities';
 import { Injectable } from '@nestjs/common';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { InjectRepository } from '@nestjs/typeorm';
 import { CsvUserData, presetsUsers } from './csv-user-data';
 
 const sortCompareObjectKeys = (
@@ -24,31 +23,17 @@ const sortCompareObjectKeys = (
 @Injectable()
 export class MigrationService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(UserActivity)
-    private readonly userActivityRepository: Repository<UserActivity>,
-    // @InjectConnection()
-    // private readonly connection: Connection,
-    // @InjectModel(User.name)
-    // private readonly userModel: Model<User>,
-    // @InjectModel(Department.name)
-    // private readonly departmentModel: Model<Department>,
+    private readonly userRepository: UserRepository,
+    private readonly userActivityRepository: UserActivityRepository,
+    private readonly userAccessRequestRepository: UserAccessRequestRepository,
   ) {
-    this.initial();
+    // this.initial();
   }
-
-  private async drop() {
-    // const users = await this.userRepository.find();
-    // for (const user of users) {
-    //   await this.userRepository.delete({id: user.id});
-    // }
-    // await this.userRepository
-    //   .createQueryBuilder('users')
-    //   .delete()
-    //   .where('id IN (:...id)', { id: users.map(({ id }) => id) })
-    //   .execute();
-    console.log('DELETE ROWS OF TABLES');
+  private async dropRecords() {
+    await this.userRepository.deleteAllRecords();
+    await this.userActivityRepository.deleteAllRecords();
+    await this.userAccessRequestRepository.deleteAllRecords();
+    console.log('DELETE ALL RECORDS');
   }
 
   // public static calcTrend(value: number, prevValue: number): number {
@@ -87,9 +72,8 @@ export class MigrationService {
   //   }
   // }
 
-  private async createStockUsers() {
+  private async insertUsersAndActivity() {
     const readedUserInstances = await new CsvUserData().getParsedCsvData();
-    // const usersForCreate = [...readedUserInstances, ...presetsUsers];
     const usersForCreate = [
       ...new Map(
         [...readedUserInstances, ...presetsUsers].map((u) => [u['email'], u]),
@@ -142,7 +126,7 @@ export class MigrationService {
 
   // private async createStockData() {
   //   await this.createStockDepartments();
-  //   await this.createStockUsers();
+  //   await this.insertUsersAndActivity();
   // }
   //
   // private async fillDepartmentActivities() {
@@ -277,9 +261,9 @@ export class MigrationService {
     console.time('MIGRATED');
     console.log('MIGRATED START');
 
-    // await this.drop();
+    await this.dropRecords();
 
-    // await this.createStockUsers();
+    await this.insertUsersAndActivity();
 
     // await this.dropCollections();
     //

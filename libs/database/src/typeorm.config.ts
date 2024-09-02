@@ -23,6 +23,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       retryDelay: 5000,
       autoLoadEntities: true,
       entities,
+      // logging: ['query', 'error'],
     };
   }
 }

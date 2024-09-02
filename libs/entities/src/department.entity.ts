@@ -3,7 +3,7 @@ import { HydratedDocument, Types } from 'mongoose';
 import { DepartmentResponseDto } from '@app/dto/departments/department.response.dto';
 import { Activity, EDepartment } from '@app/entities';
 import { departmentNamesMap } from '@app/entities/constants/names';
-import { User } from '@app/entities/user.entity';
+import { User } from '@app/entities/user/user.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 

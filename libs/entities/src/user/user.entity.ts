@@ -1,20 +1,14 @@
 import * as bcrypt from 'bcrypt';
 import { Exclude, Expose } from 'class-transformer';
 import * as moment from 'moment';
-import { HydratedDocument } from 'mongoose';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, OneToMany, VirtualColumn } from 'typeorm';
 import { UserResponseDto } from '@app/dto';
+import { EAccessRequestStatus, UserAccessRequest } from '@app/entities';
 import { UuidTimestampEntity } from '@app/entities/abstracts/uuid-timestamp.entity';
 import { USER_GROUP } from '@app/entities/constants/groupsNames';
-import {
-  Department,
-  EAccessRequestStatus,
-  UserAccessRequest,
-} from '@app/entities/index';
-import { UserActivity } from '@app/entities/user-activity.entity';
-import { SchemaFactory } from '@nestjs/mongoose';
+import { UserActivity } from '@app/entities/user-activity/user-activity.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { EUserRole, EUserStatus } from './constants';
+import { EUserRole, EUserStatus } from '../constants';
 
 @Entity('users')
 export class User extends UuidTimestampEntity {
@@ -24,22 +18,21 @@ export class User extends UuidTimestampEntity {
   @Column({ nullable: false })
   public readonly username: string;
 
-  @Exclude({ toClassOnly: true })
+  @Exclude()
   @Column({ nullable: false })
   public readonly password?: string;
 
   @Column()
   public readonly avatar?: string = '';
 
-  @Exclude({ toClassOnly: true })
+  @Exclude()
   public readonly refreshToken?: string;
 
   @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
   @Column({ type: 'enum', enum: EUserRole, default: EUserRole.VIEWER })
-  // @Prop({ type: String, enum: EUserRole, default: EUserRole.VIEWER })
   public readonly role: EUserRole = EUserRole.VIEWER;
 
-  @Exclude({ toClassOnly: true })
+  @Exclude()
   @OneToMany(
     () => UserAccessRequest,
     (accessRequest) => accessRequest.requester,
@@ -49,7 +42,7 @@ export class User extends UuidTimestampEntity {
   )
   public readonly sentAccessRequests: UserAccessRequest[];
 
-  @Exclude({ toClassOnly: true })
+  @Exclude()
   @OneToMany(
     () => UserAccessRequest,
     (accessRequest) => accessRequest.requestedUser,
@@ -61,9 +54,9 @@ export class User extends UuidTimestampEntity {
   @Column({ default: false, name: 'is_active', type: 'boolean' })
   public isActive: boolean = false;
 
-  // @Prop({ type: Map, of: Object, default: {} })
-  // activities: Map<number, Activity>;
-  @OneToMany(() => UserActivity, (activity) => activity.user)
+  @OneToMany(() => UserActivity, (activity) => activity.user, {
+    cascade: ['remove', 'soft-remove'],
+  })
   activities: UserActivity[];
 
   // @Prop({ type: String, enum: EUserStatus, default: EUserStatus.INACTIVE })
@@ -80,6 +73,7 @@ export class User extends UuidTimestampEntity {
   // @Prop({ type: Types.ObjectId, ref: Department.name })
   // department?: Department;
 
+  @Expose({ groups: [USER_GROUP.LIST, USER_GROUP.AUTH] })
   public position?: string;
 
   @Exclude()
@@ -124,12 +118,14 @@ export class User extends UuidTimestampEntity {
     return User.response(this);
   }
 
-  static response(user: User): UserResponseDto;
-  static response(userDocument: UserDocument): UserResponseDto {
-    return UserResponseDto.of(userDocument);
-    // console.log('userDocument.toObject()', userDocument.toObject());
-    // return plainToInstance(User, userDocument.toObject());
+  static response(user: User): UserResponseDto {
+    return UserResponseDto.of(user);
   }
+  // static response(userDocument: UserDocument): UserResponseDto {
+  //   return UserResponseDto.of(userDocument);
+  //   // console.log('userDocument.toObject()', userDocument.toObject());
+  //   // return plainToInstance(User, userDocument.toObject());
+  // }
 
   public get hasPendingUserAccessRequest(): boolean {
     return (
@@ -156,10 +152,10 @@ export class User extends UuidTimestampEntity {
   }
 }
 
-export type UserDocument = HydratedDocument<User>;
-export const UserSchema = SchemaFactory.createForClass(User);
-UserSchema.loadClass(User);
-UserSchema.pre(/^find/, function (this: any, next) {
-  this.populate('department', ['value', 'label']);
-  next();
-});
+// export type UserDocument = HydratedDocument<User>;
+// export const UserSchema = SchemaFactory.createForClass(User);
+// UserSchema.loadClass(User);
+// UserSchema.pre(/^find/, function (this: any, next) {
+//   this.populate('department', ['value', 'label']);
+//   next();
+// });

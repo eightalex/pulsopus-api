@@ -1,5 +1,3 @@
-import { Repository } from 'typeorm';
-import { DatabaseService } from '@app/database/database.service';
 import {
   UserResponseDto,
   UsersAccessRequestBodyRequestDto,
@@ -11,6 +9,8 @@ import {
   TokenPayload,
   User,
   UserAccessRequest,
+  UserAccessRequestRepository,
+  UserRepository,
 } from '@app/entities';
 import { MailerService } from '@app/mailer';
 import {
@@ -20,18 +20,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(UserAccessRequest)
-    private readonly userAccessRequestRepository: Repository<UserAccessRequest>,
-    private readonly databaseService: DatabaseService,
+    private readonly userRepository: UserRepository,
+    private readonly userAccessRequestRepository: UserAccessRequestRepository,
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
   ) {}
@@ -102,8 +98,20 @@ export class UsersService {
     if (!role) {
       throw new BadRequestException('Unexpected exception. No user role');
     }
-    const users = await this.userRepository.find();
-    return users.map(UserResponseDto.of);
+
+    if (role === EUserRole.VIEWER) {
+      const users = await this.userRepository.findByActive();
+      return users.map(UserResponseDto.of);
+    }
+
+    if (role === EUserRole.ADMIN) {
+      const users =
+        await this.userRepository.findByActiveOrByPendingAccessRequestedUserId(
+          sub,
+        );
+      return users.map(UserResponseDto.of);
+    }
+
     // if (role !== EUserRole.ADMIN) {
     //   const us = await this.userRepository
     //     .find({ status: EUserStatus.ACTIVE })
@@ -165,7 +173,7 @@ export class UsersService {
 
     try {
       await this.userAccessRequestRepository.save(
-        UserAccessRequest.create({
+        UserAccessRequest.of({
           requester,
           requestedUser,
         }),
