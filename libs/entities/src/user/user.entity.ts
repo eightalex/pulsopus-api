@@ -3,7 +3,11 @@ import { Exclude, Expose } from 'class-transformer';
 import * as moment from 'moment';
 import { Column, Entity, OneToMany } from 'typeorm';
 import { UserResponseDto } from '@app/dto';
-import { EAccessRequestStatus, UserAccessRequest } from '@app/entities';
+import {
+  EAccessRequestStatus,
+  EDepartment,
+  UserAccessRequest,
+} from '@app/entities';
 import { UuidTimestampEntity } from '@app/entities/abstracts/uuid-timestamp.entity';
 import { USER_GROUP } from '@app/entities/constants/groupsNames';
 import { UserActivity } from '@app/entities/user-activity/user-activity.entity';
@@ -90,7 +94,7 @@ export class User extends UuidTimestampEntity {
 
   @Expose()
   @Column({ nullable: true })
-  public department?: string;
+  public department?: EDepartment;
 
   @Expose()
   @Column({ nullable: true })

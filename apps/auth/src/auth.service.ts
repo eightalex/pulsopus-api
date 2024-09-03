@@ -107,7 +107,7 @@ export class AuthService {
 
   private async systemLogin(user: User): Promise<AuthResponseDto> {
     if (!user.isActive) {
-      throw new ForbiddenException(`Forbidden. Blocked user`);
+      throw new ForbiddenException(`Forbidden. The user is not available`);
     }
     const accessToken = await this.signToken(user);
     const refreshToken = await this.signToken(user, 'refresh');
@@ -118,7 +118,6 @@ export class AuthService {
   public async signIn(
     signInCredential: AuthLoginRequestDto,
   ): Promise<AuthResponseDto> {
-    this.logger.log(`SIGN_IN: ${signInCredential.login}`);
     // TODO: test code | remove | use usersService.getByEmail
     const user = await this.usersService.getOrCreateDefaultByEmail(
       signInCredential.login,

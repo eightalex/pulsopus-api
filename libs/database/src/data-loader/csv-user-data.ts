@@ -53,32 +53,39 @@ export const presetsUsers: IParseCsvDataReturn[] = [
 
 export class CsvUserData {
   private rowParser(row): IReaded {
-    return Object.entries(row).reduce((acc, [k, v = '']) => {
-      const keys = ['name', 'position', 'department'];
-      if (keys.includes(k.trim().toLowerCase())) {
-        acc[k.trim().toLowerCase()] = (v as string).trim();
-        return acc;
+    const result = {
+      data: {},
+    } as IReaded;
+    const fields = ['name', 'position', 'department'];
+    for (const rowKey in row) {
+      const k = rowKey.trim().toLowerCase();
+      const v = String(row[rowKey] || '').trim();
+      if (fields.includes(k)) {
+        result[k] = v;
+        continue;
       }
-      const d = acc.data || {};
-      acc.data = {
-        ...d,
-        [k]: v,
-      } as Record<string, string>;
-      return acc;
-    }, {} as IReaded);
+      if (v.length) {
+        result.data[k] = v;
+      }
+    }
+    return result;
   }
 
   private async readDataFile(): Promise<IReaded[]> {
-    return await new Promise((resolve) => {
+    let c = 0;
+    const res = await new Promise((resolve) => {
       const result: IReaded[] = [];
       createReadStream('static/data.csv')
         .pipe(csv.parse({ headers: true }))
         .on('error', (error) => console.error(error))
         .on('data', (row) => {
+          c++;
           result.push(this.rowParser(row));
         })
         .on('end', () => resolve(result));
     });
+    console.log('read rows from csv file: ', c);
+    return res as unknown as IReaded[];
   }
 
   private parseData(r: IReaded): IParseCsvDataReturn {

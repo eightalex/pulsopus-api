@@ -1,4 +1,4 @@
-import { Activity, Department, User } from '@app/entities';
+import { Department, User } from '@app/entities';
 
 export class UserResponseDto {
   public id: User['id'];
@@ -8,7 +8,6 @@ export class UserResponseDto {
   public role: User['role'];
   public department: { value: Department['value']; label: Department['label'] };
   public position: User['position'];
-  public activity: Activity[];
   public isPending: boolean;
   public isActive: boolean;
   public isAdmin: boolean;
@@ -38,7 +37,6 @@ export class UserResponseDto {
       //     }
       //   : null,
       // activity,
-      activity: user.activities,
       position: user.position,
       isPending: user.hasPendingUserAccessRequest,
       isActive: user.isActive,

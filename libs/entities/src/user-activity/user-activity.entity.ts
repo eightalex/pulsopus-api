@@ -3,6 +3,7 @@ import {
   Column,
   Entity,
   Index,
+  JoinTable,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -17,7 +18,10 @@ export class UserActivity extends TimestampEntity {
   @PrimaryGeneratedColumn()
   public readonly id: number;
 
-  @ManyToOne(() => User, (user) => user.activities, { onDelete: 'SET NULL' })
+  @ManyToOne(() => User, (user) => user.activities, {
+    onDelete: 'SET NULL',
+  })
+  @JoinTable({ name: 'user_id' })
   user: User;
 
   @ApiProperty()

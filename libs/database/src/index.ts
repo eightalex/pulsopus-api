@@ -1,2 +1,2 @@
+export * from './data-loader/data-loader.module';
 export * from './database.module';
-export * from './migration/migration.module';

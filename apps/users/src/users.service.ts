@@ -1,7 +1,6 @@
 import {
   UserFindSelectionDto,
   UserResponseDto,
-  UsersAccessRequestBodyRequestDto,
   UsersDeleteRequestDto,
   UsersFilterRequestDto,
 } from '@app/dto';
@@ -178,7 +177,7 @@ export class UsersService {
 
   public async setUserAccessRequestDecision(
     fromId: User['id'],
-    body: UsersAccessRequestBodyRequestDto,
+    // body: UsersAccessRequestBodyRequestDto,
     tokenPayload: TokenPayload,
   ): Promise<void> {
     // try {

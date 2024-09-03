@@ -1,6 +1,6 @@
 import { EDepartment } from '@app/entities';
 
-export const departmentNamesMap = new Map<keyof typeof EDepartment, string>([
+export const departmentLabelMap = new Map<keyof typeof EDepartment, string>([
   ['COMPANY', 'Company'],
   ['DEVELOPMENT', 'Development'],
   ['DESIGN', 'UI/UX Design'],

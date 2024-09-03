@@ -1,7 +1,6 @@
 import { UsePublic } from '@app/common';
-import { DepartmentResponseDto } from '@app/dto';
 import { USER_GROUP } from '@app/entities';
-import { Department } from '@app/entities/department.entity';
+import { Department } from '@app/entities/department/department.entity';
 import { Controller, Get, SerializeOptions } from '@nestjs/common';
 import { DepartmentService } from './department.service';
 
@@ -12,8 +11,8 @@ export class DepartmentController {
 
   @UsePublic()
   @Get()
-  public async getAll(): Promise<{ departments: DepartmentResponseDto[] }> {
-    const departments = await this.departmentService.get();
+  public async getAll(): Promise<{ departments: Department[] }> {
+    const departments = await this.departmentService.findAll();
     return { departments };
   }
 }

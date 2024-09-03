@@ -3,7 +3,7 @@ import { entities, repositories } from '@app/database/database.entities';
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MigrationModule } from './migration/migration.module';
+import { DataLoaderModule } from './data-loader/data-loader.module';
 import { TypeOrmConfigService } from './typeorm.config';
 
 @Module({
@@ -15,7 +15,7 @@ import { TypeOrmConfigService } from './typeorm.config';
       useClass: TypeOrmConfigService,
     }),
     TypeOrmModule.forFeature(entities),
-    forwardRef(() => MigrationModule),
+    forwardRef(() => DataLoaderModule),
   ],
   providers: [...repositories],
   exports: [TypeOrmModule, ...repositories],

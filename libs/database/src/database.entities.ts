@@ -1,4 +1,6 @@
 import {
+  Department,
+  DepartmentRepository,
   User,
   UserAccessRequest,
   UserAccessRequestRepository,
@@ -7,10 +9,11 @@ import {
   UserRepository,
 } from '@app/entities';
 
-export const entities = [User, UserActivity, UserAccessRequest];
+export const entities = [User, UserActivity, UserAccessRequest, Department];
 
 export const repositories = [
   UserRepository,
   UserActivityRepository,
   UserAccessRequestRepository,
+  DepartmentRepository,
 ];

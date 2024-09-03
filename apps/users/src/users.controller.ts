@@ -1,7 +1,6 @@
 import { UseRoles, UserTokenPayload } from '@app/common';
 import {
   UserResponseDto,
-  UsersAccessRequestBodyRequestDto,
   UsersDeleteRequestDto,
   UsersFilterRequestDto,
   UsersUpdateBodyRequestDto,
@@ -65,12 +64,12 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   public async acceptPending(
     @Param() params: { id: User['id'] },
-    @Body() body: UsersAccessRequestBodyRequestDto,
+    // @Body() body: UsersAccessRequestBodyRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<void> {
     await this.usersService.setUserAccessRequestDecision(
       params.id,
-      body,
+      // body,
       tokenPayload,
     );
   }
