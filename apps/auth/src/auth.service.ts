@@ -107,7 +107,7 @@ export class AuthService {
 
   private async systemLogin(user: User): Promise<AuthResponseDto> {
     if (!user.isActive) {
-      throw new ForbiddenException(`Forbidden. STATUS: ${user.status}`);
+      throw new ForbiddenException(`Forbidden. Blocked user`);
     }
     const accessToken = await this.signToken(user);
     const refreshToken = await this.signToken(user, 'refresh');

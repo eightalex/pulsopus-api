@@ -10,6 +10,7 @@ export class UserAccessRequest extends IdTimestampEntity {
   @Index()
   @ManyToOne(() => User, (user) => user.sentAccessRequests, {
     nullable: false,
+    onDelete: 'CASCADE',
   })
   @JoinTable({ name: 'requester_user_id' })
   public readonly requester: User;
@@ -18,6 +19,7 @@ export class UserAccessRequest extends IdTimestampEntity {
   @Index()
   @ManyToOne(() => User, (user) => user.receivedAccessRequests, {
     nullable: false,
+    onDelete: 'CASCADE',
   })
   @JoinTable({ name: 'requested_user_id' })
   public readonly requestedUser: User;

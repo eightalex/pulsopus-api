@@ -1,7 +1,9 @@
 import {
+  UserFindSelectionDto,
   UserResponseDto,
   UsersAccessRequestBodyRequestDto,
   UsersDeleteRequestDto,
+  UsersFilterRequestDto,
 } from '@app/dto';
 import { UsersUpdateBodyRequestDto } from '@app/dto/users/users-update-body.request.dto';
 import {
@@ -86,8 +88,13 @@ export class UsersService {
     return user;
   }
 
-  public async getAllByRequester(
+  public async getUsers(): Promise<User[]> {
+    return this.userRepository.find();
+  }
+
+  public async getAllByRequesterWithFilter(
     tokenPayload: TokenPayload,
+    filter: UsersFilterRequestDto,
   ): Promise<UserResponseDto[]> {
     const { sub, role } = tokenPayload;
     if (!sub) {
@@ -95,12 +102,16 @@ export class UsersService {
         'Unexpected exception. No user recipient id',
       );
     }
-    if (!role) {
-      throw new BadRequestException('Unexpected exception. No user role');
+    if (!role || ![EUserRole.VIEWER, EUserRole.ADMIN].includes(role)) {
+      throw new BadRequestException(
+        'Unexpected exception. Unsupported user role',
+      );
     }
 
     if (role === EUserRole.VIEWER) {
-      const users = await this.userRepository.findByActive();
+      const users = await this.userRepository.findByActive(
+        UserFindSelectionDto.of(filter.from, filter.from),
+      );
       return users.map(UserResponseDto.of);
     }
 
@@ -108,37 +119,10 @@ export class UsersService {
       const users =
         await this.userRepository.findByActiveOrByPendingAccessRequestedUserId(
           sub,
+          UserFindSelectionDto.of(filter.from, filter.from),
         );
       return users.map(UserResponseDto.of);
     }
-
-    // if (role !== EUserRole.ADMIN) {
-    //   const us = await this.userRepository
-    //     .find({ status: EUserStatus.ACTIVE })
-    //     .exec();
-    //   return us.map((u) => u.response());
-    // }
-    //
-    // const us = await this.userRepository
-    //   .find({
-    //     $or: [
-    //       { status: EUserStatus.ACTIVE },
-    //       {
-    //         $and: [
-    //           { accessRequestAdminId: tokenPayload.sub },
-    //           { status: EUserStatus.PENDING },
-    //         ],
-    //       },
-    //     ],
-    //   })
-    //   .sort({
-    //     status: -1,
-    //     role: 1,
-    //     username: 1,
-    //     updated_at: 1,
-    //   })
-    //   .exec();
-    // return us.map((u) => User.response(u));
   }
 
   public async updateUserByIdDto(

@@ -27,7 +27,7 @@ export class MigrationService {
     private readonly userActivityRepository: UserActivityRepository,
     private readonly userAccessRequestRepository: UserAccessRequestRepository,
   ) {
-    // this.initial();
+    this.initial();
   }
   private async dropRecords() {
     await this.userRepository.deleteAllRecords();
@@ -36,41 +36,15 @@ export class MigrationService {
     console.log('DELETE ALL RECORDS');
   }
 
-  // public static calcTrend(value: number, prevValue: number): number {
-  //   if (!value && !prevValue) return 0;
-  //   if (!value) return -100;
-  //   if (!prevValue) return 100;
-  //   const cV = Math.max(Number(value), 1);
-  //   const pV = Math.max(Number(prevValue), 1);
-  //   const diffAbsolute = cV / pV;
-  //   return cV >= pV ? (diffAbsolute - 1) * 100 : (1 - diffAbsolute) * -100;
-  // }
-  //
-  // private async dropCollections() {
-  //   const collectionNames = [
-  //     this.userModel.collection.collectionName,
-  //     this.departmentModel.collection.collectionName,
-  //   ];
-  //   for (const collectionName of collectionNames) {
-  //     try {
-  //       await this.connection.dropCollection(collectionName);
-  //       console.log(`Collection ${collectionName} dropped successfully`);
-  //     } catch (error) {
-  //       if (error.code === 26) {
-  //         console.log(`Collection ${collectionName} does not exist`);
-  //       } else {
-  //         console.error(`Error dropping collection ${collectionName}:`, error);
-  //       }
-  //     }
-  //   }
-  // }
-  //
-  // private async createStockDepartments() {
-  //   for (const value of Object.keys(EDepartment)) {
-  //     const dep = Department.of(value as EDepartment);
-  //     await this.departmentModel.create(dep);
-  //   }
-  // }
+  public calcTrend(value: number, prevValue: number): number {
+    if (!value && !prevValue) return 0;
+    if (!value) return -100;
+    if (!prevValue) return 100;
+    const cV = Math.max(Number(value), 1);
+    const pV = Math.max(Number(prevValue), 1);
+    const diffAbsolute = cV / pV;
+    return cV >= pV ? (diffAbsolute - 1) * 100 : (1 - diffAbsolute) * -100;
+  }
 
   private async insertUsersAndActivity() {
     const readedUserInstances = await new CsvUserData().getParsedCsvData();
@@ -80,14 +54,31 @@ export class MigrationService {
       ).values(),
     ];
 
+    const activities = usersForCreate.reduce(
+      (acc, { activity }) => {
+        if (!activity) return acc;
+        Object.entries(activity).forEach(([d, v]) => {
+          const date = Number(d);
+          const accValue = acc.get(date) || 0;
+          acc.set(date, accValue + v);
+        });
+        return acc;
+      },
+      new Map() as Map<number, number>,
+    );
+
     for (const userForCreate of usersForCreate) {
       const { activity, ...u } = userForCreate;
       const user = await this.userRepository.save(await User.create(u));
-
       for (const key in activity) {
+        const value = activity[key];
+        const date = Number(key);
+        const absolute = activities.get(date) || value;
+        const rate = (value / absolute) * 100;
         const act = UserActivity.of({
-          date: Number(key),
-          value: activity[key],
+          date,
+          value,
+          rate,
           user,
         });
         await this.userActivityRepository.save(act);
@@ -265,8 +256,8 @@ export class MigrationService {
 
     await this.insertUsersAndActivity();
 
-    // await this.dropCollections();
-    //
+    // await this.fillUserActivityTrendRate();
+
     // await this.createStockData();
     //
     // await this.fillDepartmentActivities();

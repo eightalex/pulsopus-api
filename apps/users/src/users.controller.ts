@@ -30,12 +30,23 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @SerializeOptions({ groups: [USER_GROUP.PROFILE] })
   @Get()
+  public async getUsers(): Promise<{ users: User[] }> {
+    const users = await this.usersService.getUsers();
+    return { users };
+  }
+
+  @SerializeOptions({ groups: [USER_GROUP.LIST] })
+  @Get('activity')
   public async getAllUsers(
     @Query(ValidationPipe) filter: UsersFilterRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<{ users: UserResponseDto[] }> {
-    const users = await this.usersService.getAllByRequester(tokenPayload);
+    const users = await this.usersService.getAllByRequesterWithFilter(
+      tokenPayload,
+      filter,
+    );
     return { users };
   }
 

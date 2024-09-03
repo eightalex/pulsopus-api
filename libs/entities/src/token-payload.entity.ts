@@ -4,7 +4,6 @@ export class TokenPayload {
   sub: User['id'];
   username: User['username'];
   role: User['role'];
-  status: User['status'];
   isActive: User['isActive'];
 
   constructor(partial: Partial<TokenPayload>) {
@@ -20,7 +19,6 @@ export class TokenPayload {
       sub: user.id,
       username: user.username,
       role: user.role,
-      status: user.status,
       isActive: user.isActive,
     });
   }

@@ -26,4 +26,12 @@ export class UsersFilterRequestDto {
   @Type(() => String)
   @Transform((params) => transformArrayFunction(params))
   email?: string[];
+
+  @IsOptional()
+  @Type(() => Number)
+  from?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  to?: number;
 }

@@ -6,7 +6,6 @@ export class UserResponseDto {
   public email: User['email'];
   public avatar: User['avatar'];
   public role: User['role'];
-  public status: User['status'];
   public department: { value: Department['value']; label: Department['label'] };
   public position: User['position'];
   public activity: Activity[];
@@ -20,9 +19,9 @@ export class UserResponseDto {
   }
 
   static of(user: User): UserResponseDto {
-    const activity = [...user.activities.values()].sort(
-      (p, n) => p.date - n.date,
-    );
+    // const activity = [...user.activities.values()].sort(
+    //   (p, n) => p.date - n.date,
+    // );
 
     return new UserResponseDto({
       id: user.id,
@@ -30,7 +29,6 @@ export class UserResponseDto {
       email: user.email,
       avatar: user.avatar,
       role: user.role,
-      status: user.status,
       // TODO: return department
       department: null,
       // department: user.department
@@ -39,9 +37,10 @@ export class UserResponseDto {
       //       label: user.department.label,
       //     }
       //   : null,
-      activity,
+      // activity,
+      activity: user.activities,
       position: user.position,
-      isPending: user.isPending,
+      isPending: user.hasPendingUserAccessRequest,
       isActive: user.isActive,
       isAdmin: user.isAdmin,
       createdAt: user.createdAt,
