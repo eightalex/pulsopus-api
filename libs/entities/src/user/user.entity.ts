@@ -81,17 +81,6 @@ export class User extends UuidTimestampEntity {
   })
   activities: UserActivity[];
 
-  // @Transform(({ value: department }: { value?: Department }) => {
-  //   if (!department) return null;
-  //   return {
-  //     id: department?.id,
-  //     value: department?.value,
-  //     label: department?.label,
-  //   };
-  // })
-  // @Prop({ type: Types.ObjectId, ref: Department.name })
-  // department?: Department;
-
   @Expose()
   @Column({ nullable: true })
   public department?: EDepartment;
@@ -134,6 +123,12 @@ export class User extends UuidTimestampEntity {
 
   static response(user: User): UserResponseDto {
     return UserResponseDto.of(user);
+  }
+
+  // TODO: remove | quick fix for app frontend
+  @Expose({ groups: [USER_GROUP.LIST] })
+  public get activity(): UserActivity[] {
+    return this.activities;
   }
 
   @Expose({
