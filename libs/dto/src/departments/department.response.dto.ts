@@ -1,4 +1,3 @@
-import { UserResponseDto } from '@app/dto/users';
 import { Department, User } from '@app/entities';
 
 export class DepartmentResponseDto {
@@ -6,7 +5,7 @@ export class DepartmentResponseDto {
   public value: Department['value'];
   public label: Department['label'];
   // public activity: Activity[];
-  public users: UserResponseDto[];
+  public users: User[];
   constructor(partial: Partial<DepartmentResponseDto>) {
     Object.assign(this as DepartmentResponseDto, partial);
   }
@@ -19,7 +18,7 @@ export class DepartmentResponseDto {
       id: department.id,
       value: department.value,
       label: department.label,
-      users: department.users.map((u) => User.response(u)),
+      users: department.users,
       // activity,
     });
   }

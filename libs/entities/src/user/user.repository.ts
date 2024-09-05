@@ -60,4 +60,18 @@ export class UserRepository extends Repository<User> {
       .cache(true)
       .getMany();
   }
+
+  public async activateUserById(id: User['id']): Promise<User> {
+    return this.save({
+      id,
+      isActive: true,
+    });
+  }
+
+  public async deactivateUserById(id: User['id']): Promise<User> {
+    return this.save({
+      id,
+      isActive: false,
+    });
+  }
 }

@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, Index, JoinTable, ManyToOne } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { User } from '@app/entities';
 import { IdTimestampEntity } from '@app/entities/abstracts/id-timestamp.entity';
 import { EAccessRequestStatus } from '../constants/enums';
@@ -12,7 +12,7 @@ export class UserAccessRequest extends IdTimestampEntity {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  @JoinTable({ name: 'requester_user_id' })
+  @JoinColumn({ name: 'requester_id' })
   public readonly requester: User;
 
   @Exclude({ toClassOnly: true })
@@ -21,7 +21,7 @@ export class UserAccessRequest extends IdTimestampEntity {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  @JoinTable({ name: 'requested_user_id' })
+  @JoinColumn({ name: 'requested_user_id' })
   public readonly requestedUser: User;
 
   @Exclude({ toClassOnly: true })

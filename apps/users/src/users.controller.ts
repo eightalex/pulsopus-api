@@ -1,6 +1,6 @@
 import { UseRoles, UserTokenPayload } from '@app/common';
 import {
-  UserResponseDto,
+  UsersAccessBodyRequestDto,
   UsersDeleteRequestDto,
   UsersFilterRequestDto,
   UsersUpdateBodyRequestDto,
@@ -41,7 +41,7 @@ export class UsersController {
   public async getAllUsers(
     @Query(ValidationPipe) filter: UsersFilterRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
-  ): Promise<{ users: UserResponseDto[] }> {
+  ): Promise<{ users: User[] }> {
     const users = await this.usersService.getAllByRequesterWithFilter(
       tokenPayload,
       filter,
@@ -54,24 +54,29 @@ export class UsersController {
   public async updateUser(
     @Param() params: { id: User['id'] },
     @Body() body: UsersUpdateBodyRequestDto,
-  ): Promise<{ user: UserResponseDto }> {
+  ): Promise<{ user: User }> {
     const user = await this.usersService.updateUserByIdDto(params.id, body);
     return { user };
   }
 
-  @Post(':id/access')
+  @Post('access/approve')
   @UseRoles(EUserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async acceptPending(
-    @Param() params: { id: User['id'] },
-    // @Body() body: UsersAccessRequestBodyRequestDto,
+  public async approveAccessRequest(
+    @Body() body: UsersAccessBodyRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
-  ): Promise<void> {
-    await this.usersService.setUserAccessRequestDecision(
-      params.id,
-      // body,
-      tokenPayload,
-    );
+  ): Promise<User> {
+    return this.usersService.approveRequest(body, tokenPayload);
+  }
+
+  @Post('access/reject')
+  @UseRoles(EUserRole.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async rejectAccessRequest(
+    @Body() body: UsersAccessBodyRequestDto,
+    @UserTokenPayload() tokenPayload: TokenPayload,
+  ): Promise<User> {
+    return this.usersService.rejectRequest(body, tokenPayload);
   }
 
   @Delete()

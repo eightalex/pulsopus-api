@@ -1,6 +1,7 @@
+import { In } from 'typeorm';
 import {
   UserFindSelectionDto,
-  UserResponseDto,
+  UsersAccessBodyRequestDto,
   UsersDeleteRequestDto,
   UsersFilterRequestDto,
 } from '@app/dto';
@@ -16,6 +17,7 @@ import {
 import { MailerService } from '@app/mailer';
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -71,12 +73,12 @@ export class UsersService {
     try {
       user = await this.getByEmail(email);
     } catch (error) {
-      const defaultUser: Partial<User> = {
+      const defaultUser = {
         isActive: false,
         role: EUserRole.VIEWER,
         password: 'password',
         ...partial,
-      };
+      } as Partial<User>;
       const newUser = await User.create({
         email,
         username: email.replace(/@.\S+$/, ''),
@@ -93,8 +95,8 @@ export class UsersService {
 
   public async getAllByRequesterWithFilter(
     tokenPayload: TokenPayload,
-    filter: UsersFilterRequestDto,
-  ): Promise<UserResponseDto[]> {
+    filter: UsersFilterRequestDto = new UsersFilterRequestDto(),
+  ): Promise<User[]> {
     const { sub, role } = tokenPayload;
     if (!sub) {
       throw new BadRequestException(
@@ -108,43 +110,40 @@ export class UsersService {
     }
 
     if (role === EUserRole.VIEWER) {
-      const users = await this.userRepository.findByActive(
+      return this.userRepository.findByActive(
         UserFindSelectionDto.of(filter.from, filter.from),
       );
-      return users.map(UserResponseDto.of);
     }
 
     if (role === EUserRole.ADMIN) {
-      const users =
-        await this.userRepository.findByActiveOrByPendingAccessRequestedUserId(
-          sub,
-          UserFindSelectionDto.of(filter.from, filter.from),
-        );
-      return users.map(UserResponseDto.of);
+      return this.userRepository.findByActiveOrByPendingAccessRequestedUserId(
+        sub,
+        UserFindSelectionDto.of(filter.from, filter.from),
+      );
     }
   }
 
   public async updateUserByIdDto(
     id: User['id'],
     dto: UsersUpdateBodyRequestDto,
-  ): Promise<UserResponseDto> {
-    const u = await this.getById(id);
-    return UserResponseDto.of(u);
-    // const user = await this.userRepository
-    //   .findByIdAndUpdate(id, { ...dto })
-    //   .exec();
-    // return UserResponseDto.of(user);
+  ): Promise<User> {
+    return this.userRepository.save({
+      ...dto,
+      id,
+    });
   }
 
   public async deleteUsers(
     params: UsersDeleteRequestDto,
     tokePayload: TokenPayload,
   ): Promise<void> {
-    // const u = await this.getById(tokePayload.sub);
-    // if (!u || !u.isActive || !u.isAdmin) {
-    //   throw new ForbiddenException('No permission');
-    // }
-    // await this.userRepository.deleteMany({ _id: { $in: params.ids } });
+    const admin = await this.getById(tokePayload.sub);
+    if (!admin || !admin.isActive || !admin.isAdmin) {
+      throw new ForbiddenException('No permission');
+    }
+    await this.userRepository.delete({
+      id: In(params.ids),
+    });
   }
 
   public async createUserAccessRequest(
@@ -175,40 +174,42 @@ export class UsersService {
     }
   }
 
-  public async setUserAccessRequestDecision(
-    fromId: User['id'],
-    // body: UsersAccessRequestBodyRequestDto,
+  public async approveRequest(
+    dto: UsersAccessBodyRequestDto,
     tokenPayload: TokenPayload,
-  ): Promise<void> {
-    // try {
-    //   const user = await this.userRepository
-    //     .findOne({
-    //       _id: fromId,
-    //       accessRequestAdminId: tokenPayload.sub,
-    //     })
-    //     .exec();
-    //   user.accessRequestAdminId = null;
-    //
-    //   if (body.decision === EAccessRequestDecision.ACCEPT) {
-    //     user.status = EUserStatus.ACTIVE;
-    //     await this.mailerService.sendUserAccessApproved({
-    //       to: user.email,
-    //       userName: user.username,
-    //       loginLink: this.clientUrl,
-    //     });
-    //   } else {
-    //     user.status = EUserStatus.INACTIVE;
-    //     await this.mailerService.sendUserAccessRejected({
-    //       to: user.email,
-    //       userName: user.username,
-    //     });
-    //   }
-    //   await user.save();
-    // } catch (err) {
-    //   throw new HttpException(
-    //     'Oops... Something wrong!',
-    //     HttpStatus.INTERNAL_SERVER_ERROR,
-    //   );
-    // }
+  ): Promise<User> {
+    const { sub } = tokenPayload;
+    const admin = await this.getById(sub);
+
+    if (!admin.isActive || !admin.isAdmin) {
+      throw new ForbiddenException('No permission');
+    }
+
+    const requests =
+      await this.userAccessRequestRepository.findByPendingAndRequesterIdAndRequestedUserId(
+        dto.id,
+        sub,
+      );
+
+    for (const request of requests) {
+      await this.userAccessRequestRepository.approveById(request.id);
+    }
+
+    return this.userRepository.activateUserById(dto.id);
+  }
+
+  public async rejectRequest(
+    dto: UsersAccessBodyRequestDto,
+    tokenPayload: TokenPayload,
+  ): Promise<User> {
+    const requests =
+      await this.userAccessRequestRepository.findByPendingAndRequesterIdAndRequestedUserId(
+        dto.id,
+        tokenPayload.sub,
+      );
+
+    for (const request of requests) {
+      await this.userAccessRequestRepository.rejectById(request.id);
+    }
   }
 }

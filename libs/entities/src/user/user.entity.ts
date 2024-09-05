@@ -1,11 +1,12 @@
 import * as bcrypt from 'bcrypt';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 import * as moment from 'moment';
 import { Column, Entity, OneToMany } from 'typeorm';
-import { UserResponseDto } from '@app/dto';
 import {
+  departmentLabelMap,
   EAccessRequestStatus,
   EDepartment,
+  EUserStatus,
   UserAccessRequest,
 } from '@app/entities';
 import { UuidTimestampEntity } from '@app/entities/abstracts/uuid-timestamp.entity';
@@ -28,7 +29,7 @@ export class User extends UuidTimestampEntity {
 
   @Exclude()
   @Column({ nullable: false })
-  public password?: string;
+  private password?: string;
 
   @ApiProperty({ type: () => String, required: false })
   @Expose()
@@ -82,7 +83,11 @@ export class User extends UuidTimestampEntity {
   activities: UserActivity[];
 
   @Expose()
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'department' })
+  @Transform(({ value }: { value?: EDepartment }) => {
+    if (!value) return '';
+    return departmentLabelMap.get(value);
+  })
   public department?: EDepartment;
 
   @Expose()
@@ -117,15 +122,7 @@ export class User extends UuidTimestampEntity {
     return this.isRole(EUserRole.ADMIN);
   }
 
-  public response(): UserResponseDto {
-    return User.response(this);
-  }
-
-  static response(user: User): UserResponseDto {
-    return UserResponseDto.of(user);
-  }
-
-  // TODO: remove | quick fix for app frontend
+  // TODO: remove | quick fix for app frontend | use User[activities] field
   @Expose({ groups: [USER_GROUP.LIST] })
   public get activity(): UserActivity[] {
     return this.activities;
@@ -141,6 +138,22 @@ export class User extends UuidTimestampEntity {
         (request) => request.status === EAccessRequestStatus.PENDING,
       ) ?? false
     );
+  }
+
+  @Expose({
+    name: 'status',
+    groups: [
+      USER_GROUP.AUTH,
+      USER_GROUP.PROFILE,
+      USER_GROUP.LIST_ADMIN,
+      USER_GROUP.LIST,
+    ],
+  })
+  public get status(): EUserStatus {
+    if (this.isActive) return EUserStatus.ACTIVE;
+    if (!this.isActive && this.hasPendingUserAccessRequest)
+      return EUserStatus.PENDING;
+    return EUserStatus.INACTIVE;
   }
 
   public async comparePassword(password: string): Promise<boolean> {

@@ -1,2 +1,11 @@
 ### test login
-GET http://localhost:{{port}}/{{prefix}}/{{version}}/users/test/sendmail
+GET http://localhost:{{port}}/{{prefix}}/{{version}}/auth/test/admin@pulsopus.dev
+
+### get users with activity by requester
+GET http://localhost:{{port}}/{{prefix}}/{{version}}/users/activity
+Content-Type: application/json
+Authorization: Bearer {{token}}}
+
+
+### test req public
+GET http://localhost:{{port}}/{{prefix}}/{{version}}/users/test

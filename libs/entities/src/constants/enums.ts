@@ -3,6 +3,12 @@ export enum EUserRole {
   ADMIN = 'ADMIN',
 }
 
+export enum EUserStatus {
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
 export enum EDepartment {
   COMPANY = 'COMPANY',
   DEVELOPMENT = 'DEVELOPMENT',
