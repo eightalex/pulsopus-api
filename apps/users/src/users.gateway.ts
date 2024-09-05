@@ -14,7 +14,16 @@ import { AuthService } from '@/auth/src/auth.service';
 import { EUsersGatewayEvent } from './constants';
 
 // TODO: add gateway global prefix and versions | or get from .env
-@WebSocketGateway({ namespace: 'api/v1/users' })
+@WebSocketGateway({
+  namespace: 'api/v1/users',
+  cors: {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['content-type'],
+    credentials: true,
+  },
+  transports: ['websocket', 'polling'],
+})
 export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   private readonly server: Server;
@@ -103,10 +112,13 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const message = {
       id: userId,
       update: updatedParams,
+      requesterUserId,
     };
-    this.broadcast(EUsersGatewayEvent.UPDATE, message, {
-      excludeUserIds: [requesterUserId],
-    });
+    // this.broadcast(EUsersGatewayEvent.UPDATE, message, {
+    //   excludeUserIds: [requesterUserId],
+    // });
+
+    this.broadcast(EUsersGatewayEvent.UPDATE, message);
   }
 
   public sendEventDeleteUser(params: {
@@ -116,10 +128,11 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { userId = '', requesterUserId = '' } = params;
     const message = {
       id: userId,
+      requesterUserId,
     };
-    this.broadcast(EUsersGatewayEvent.DELETE, message, {
-      excludeUserIds: [requesterUserId],
-    });
+    // this.broadcast(EUsersGatewayEvent.DELETE, message, {
+    //   excludeUserIds: [requesterUserId],
+    // });
 
     this.broadcast(EUsersGatewayEvent.DELETE, message);
   }
