@@ -1,7 +1,6 @@
 import { In } from 'typeorm';
 import {
   UserFindSelectionDto,
-  UsersAccessBodyRequestDto,
   UsersDeleteRequestDto,
   UsersFilterRequestDto,
 } from '@app/dto';
@@ -180,7 +179,7 @@ export class UsersService {
   }
 
   public async approveRequest(
-    dto: UsersAccessBodyRequestDto,
+    id: User['id'],
     tokenPayload: TokenPayload,
   ): Promise<User> {
     const { sub } = tokenPayload;
@@ -192,7 +191,7 @@ export class UsersService {
 
     const requests =
       await this.userAccessRequestRepository.findByPendingAndRequesterIdAndRequestedUserId(
-        dto.id,
+        id,
         sub,
       );
 
@@ -200,16 +199,16 @@ export class UsersService {
       await this.userAccessRequestRepository.approveById(request.id);
     }
 
-    return this.userRepository.activateUserById(dto.id);
+    return this.userRepository.activateUserById(id);
   }
 
   public async rejectRequest(
-    dto: UsersAccessBodyRequestDto,
+    id: User['id'],
     tokenPayload: TokenPayload,
   ): Promise<User> {
     const requests =
       await this.userAccessRequestRepository.findByPendingAndRequesterIdAndRequestedUserId(
-        dto.id,
+        id,
         tokenPayload.sub,
       );
 
@@ -217,6 +216,6 @@ export class UsersService {
       await this.userAccessRequestRepository.rejectById(request.id);
     }
 
-    return this.getById(dto.id);
+    return this.getById(id);
   }
 }

@@ -21,9 +21,9 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private readonly logger = new Logger(UsersGateway.name);
 
-  // TODO: use redis
+  // TODO: add use redis
   private readonly clients: Map<Socket['id'], Socket> = new Map();
-  // TODO: use redis
+  // TODO: add use redis
   private readonly userAssociateMap: Map<Socket['id'], User['id']> = new Map();
 
   constructor(private readonly authService: AuthService) {}
