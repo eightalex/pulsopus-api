@@ -94,13 +94,10 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('message')
-  handleMessage(
-    @MessageBody() data: string,
-    @ConnectedSocket() client: Socket,
-  ) {
-    this.broadcast(EUsersGatewayEvent.MESSAGE, data, {
-      excludeClientIds: [client.id],
-    });
+  onMessage(@MessageBody() message: string, @ConnectedSocket() client: Socket) {
+    this.logger.log(
+      `[READ] | Client: ${client.id} | Event: message | Message: ${JSON.stringify(message, null, 2)}`,
+    );
   }
 
   public sendEventUpdateUser(params: {
@@ -114,9 +111,6 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
       update: updatedParams,
       requesterUserId,
     };
-    // this.broadcast(EUsersGatewayEvent.UPDATE, message, {
-    //   excludeUserIds: [requesterUserId],
-    // });
 
     this.broadcast(EUsersGatewayEvent.UPDATE, message);
   }
@@ -130,9 +124,6 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
       id: userId,
       requesterUserId,
     };
-    // this.broadcast(EUsersGatewayEvent.DELETE, message, {
-    //   excludeUserIds: [requesterUserId],
-    // });
 
     this.broadcast(EUsersGatewayEvent.DELETE, message);
   }
