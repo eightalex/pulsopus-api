@@ -123,14 +123,19 @@ export class UsersService {
     }
   }
 
-  public async updateUserByIdDto(
+  public async updateUserById(
     id: User['id'],
     dto: UsersUpdateBodyRequestDto,
   ): Promise<User> {
-    return this.userRepository.save({
-      ...dto,
-      id,
-    });
+    await this.userRepository.update(
+      {
+        id,
+      },
+      {
+        ...dto,
+      },
+    );
+    return this.getById(id);
   }
 
   public async deleteUsers(
@@ -211,5 +216,7 @@ export class UsersService {
     for (const request of requests) {
       await this.userAccessRequestRepository.rejectById(request.id);
     }
+
+    return this.getById(dto.id);
   }
 }

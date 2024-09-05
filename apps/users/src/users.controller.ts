@@ -21,13 +21,17 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { UsersGateway } from '@/users/src/users.gateway';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
 @Controller('users')
 @SerializeOptions({ groups: [USER_GROUP.LIST] })
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly usersGateway: UsersGateway,
+  ) {}
 
   @SerializeOptions({ groups: [USER_GROUP.PROFILE] })
   @Get()
@@ -36,7 +40,6 @@ export class UsersController {
     return { users };
   }
 
-  @SerializeOptions({ groups: [USER_GROUP.LIST] })
   @Get('activity')
   public async getAllUsers(
     @Query(ValidationPipe) filter: UsersFilterRequestDto,
@@ -49,13 +52,28 @@ export class UsersController {
     return { users };
   }
 
+  @Get(':id')
+  @SerializeOptions({ groups: [USER_GROUP.PROFILE] })
+  public async getById(
+    @Param() params: { id: User['id'] },
+  ): Promise<{ user: User }> {
+    const user = { id: params.id } as User;
+    return { user };
+  }
+
   @Put(':id')
   @UseRoles(EUserRole.ADMIN)
   public async updateUser(
     @Param() params: { id: User['id'] },
     @Body() body: UsersUpdateBodyRequestDto,
+    @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<{ user: User }> {
-    const user = await this.usersService.updateUserByIdDto(params.id, body);
+    const user = await this.usersService.updateUserById(params.id, body);
+    this.usersGateway.sendEventUpdateUser({
+      userId: params.id,
+      requesterUserId: tokenPayload.sub,
+      updatedParams: body,
+    });
     return { user };
   }
 
@@ -86,6 +104,12 @@ export class UsersController {
     @Query() params: UsersDeleteRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<void> {
-    return this.usersService.deleteUsers(params, tokenPayload);
+    await this.usersService.deleteUsers(params, tokenPayload);
+    params.ids.forEach((userId) => {
+      this.usersGateway.sendEventDeleteUser({
+        userId,
+        requesterUserId: tokenPayload.sub,
+      });
+    });
   }
 }

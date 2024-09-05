@@ -24,7 +24,7 @@ type TokenType = 'access' | 'refresh';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  public tokens: Map<string, string[]> = new Map();
+  private tokens: Map<string, string[]> = new Map();
 
   constructor(
     private readonly config: ConfigService,

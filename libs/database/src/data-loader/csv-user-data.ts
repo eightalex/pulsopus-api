@@ -12,10 +12,7 @@ export interface IReaded
 }
 
 interface IParseCsvDataReturn
-  extends Pick<
-    User,
-    'email' | 'username' | 'password' | 'isActive' | 'position' | 'role'
-  > {
+  extends Pick<User, 'email' | 'username' | 'isActive' | 'position' | 'role'> {
   department?: EDepartment;
   activity?: Record<number, number>;
 }

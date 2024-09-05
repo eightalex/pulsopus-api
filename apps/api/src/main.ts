@@ -81,11 +81,6 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalInterceptors(new TokenResponseInterceptor(authService));
-  // app.useGlobalInterceptors(
-  //   new ClassSerializerInterceptor(app.get(Reflector), {
-  //     enableCircularCheck: true,
-  //   }),
-  // );
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
       enableCircularCheck: true,
