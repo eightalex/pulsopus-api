@@ -114,11 +114,9 @@ export class UsersController {
     @Req() req: Request,
   ): Promise<{ link: string }> {
     const isDev = this.config.get<boolean>('IS_DEV');
-    // const t = await this.authService.rebuildToken(token);
-    const t = '';
     const protocol = isDev ? 'ws' : 'wss';
     const host = req.get('Host');
-    const link = `${protocol}://${host}/api/v1/users?token=${t}`;
+    const link = `${protocol}://${host}/api/v1/users?token=${token}`;
     return { link };
   }
 }
