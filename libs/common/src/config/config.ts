@@ -41,15 +41,15 @@ class EnvironmentVariables {
   MONGODB_URI: string;
 
   @IsString()
-  DB_HOST: string;
+  POSTGRES_HOST: string;
   @IsString()
-  DB_USERNAME: string;
+  POSTGRES_USER: string;
   @IsString()
-  DB_PASSWORD: string;
+  POSTGRES_PASSWORD: string;
   @IsNumber()
-  DB_PORT: number;
+  POSTGRES_PORT: number;
   @IsString()
-  DB_NAME: string;
+  POSTGRES_DB: string;
 
   @IsString()
   CLIENT_URL: string;
@@ -105,11 +105,11 @@ export default (): Record<string, unknown> => ({
       uri: process.env.MONGODB_URI,
     },
     pg: {
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT, 10) || 5432,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      name: process.env.DB_NAME,
+      host: process.env.POSTGRES_HOST,
+      port: parseInt(process.env.POSTGRES_PORT, 10) || 5432,
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      name: process.env.POSTGRES_DB,
     },
   },
   secret: {

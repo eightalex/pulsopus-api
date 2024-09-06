@@ -33,8 +33,8 @@ async function bootstrap() {
     cors: {
       credentials: true,
       methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-      // allowedHeaders: ['content-type', 'authorization', 'accept'],
-      allowedHeaders: ['content-type', 'authorization'],
+      allowedHeaders: ['content-type', 'authorization', 'accept'],
+      // TODO: create origin env constants
       origin: isDev
         ? ['http://localhost:5172', 'http://localhost:5173']
         : [
@@ -77,9 +77,9 @@ async function bootstrap() {
   };
   SwaggerModule.setup('/api', app, document, swaggerOptions);
 
+  app.useLogger(app.get(Logger));
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new TokenResponseInterceptor(authService));
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {

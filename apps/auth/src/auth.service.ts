@@ -6,7 +6,7 @@ import {
   AuthLoginSendRequestDto,
   AuthResponseDto,
 } from '@app/dto';
-import { EUserRole, EUserStatus, TokenPayload, User } from '@app/entities';
+import { EUserRole, TokenPayload, User } from '@app/entities';
 import {
   BadRequestException,
   ForbiddenException,
@@ -24,7 +24,7 @@ type TokenType = 'access' | 'refresh';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  public tokens: Map<string, string[]> = new Map();
+  private tokens: Map<string, string[]> = new Map();
 
   constructor(
     private readonly config: ConfigService,
@@ -60,20 +60,6 @@ export class AuthService {
       secret: access.key,
       expiresIn: access.expire,
     });
-  }
-
-  private async validateUserPassword(
-    user: User,
-    password: string,
-  ): Promise<boolean> {
-    if (!user || !password) {
-      throw new InvalidCredentialsException();
-    }
-    const validate = await user.validatePassword(password);
-    if (!validate) {
-      throw new InvalidCredentialsException();
-    }
-    return validate;
   }
 
   public async validateToken(
@@ -121,7 +107,7 @@ export class AuthService {
 
   private async systemLogin(user: User): Promise<AuthResponseDto> {
     if (!user.isActive) {
-      throw new ForbiddenException(`Forbidden. STATUS: ${user.status}`);
+      throw new ForbiddenException(`Forbidden. The user is not available`);
     }
     const accessToken = await this.signToken(user);
     const refreshToken = await this.signToken(user, 'refresh');
@@ -129,38 +115,13 @@ export class AuthService {
     return AuthResponseDto.of(accessToken, refreshToken, user);
   }
 
-  // TODO: sign or create and sign / remove
-  public async signInWithCreate(
-    signInCredential: AuthLoginRequestDto,
-  ): Promise<AuthResponseDto> {
-    let user: User | null = null;
-    try {
-      user = await this.usersService.getByEmail(signInCredential.login);
-    } catch (err) {
-      console.error(err);
-      const newUser = new User({
-        username: signInCredential.login.replace('@pulsopus.dev', ''),
-        email: signInCredential.login,
-        // email: signInCredential.login
-        //   .replace('@pulsopus.dev', '')
-        //   .concat('@pulsopus.dev'),
-        password: 'password',
-        refreshToken: 'refreshToken',
-        status: EUserStatus.INACTIVE,
-      });
-      await this.usersService.create(newUser);
-      user = await this.usersService.getByEmail(newUser.email);
-    }
-    return this.systemLogin(user);
-  }
-
   public async signIn(
     signInCredential: AuthLoginRequestDto,
   ): Promise<AuthResponseDto> {
-    // TODO: test code. Remove
-    return this.signInWithCreate(signInCredential);
-    const user = await this.usersService.getByEmail(signInCredential.login);
-    await this.validateUserPassword(user, signInCredential.password);
+    // TODO: test code | remove | use usersService.getByEmail
+    const user = await this.usersService.getOrCreateDefaultByEmail(
+      signInCredential.login,
+    );
     return this.systemLogin(user);
   }
 
@@ -201,56 +162,35 @@ export class AuthService {
     // TODO: cookie names from constant
     response.setHeader('Authorization', '');
     response.setHeader('Clear-Site-Data', '"cache", "storage"');
-    response.cookie('refresh', '', {
-      httpOnly: true,
-      maxAge: 0,
+    const clearedCookieKeys = ['refresh', 'token'];
+    clearedCookieKeys.forEach((k) => {
+      response.cookie(k, '', {
+        httpOnly: true,
+        maxAge: 0,
+      });
     });
-    response.cookie('token', '', {
-      maxAge: 0,
-      httpOnly: true,
-    });
-
     const payload = await this.validateToken(token);
     this.resetTokens(payload.sub);
   }
 
-  // TODO: create admin if not exist/ remove method
-  private async getOrCreateAdminIfNotExist(
-    email: User['email'],
-  ): Promise<User> {
-    try {
-      return await this.usersService.getByEmail(email);
-    } catch (err) {
-      console.log('err', err);
-      const newUser = new User({
-        username: email,
-        email,
-        password: 'password',
-        refreshToken: 'refreshToken',
-        status: EUserStatus.ACTIVE,
-        role: EUserRole.ADMIN,
-      });
-      await this.usersService.create(newUser);
-      return await this.usersService.getByEmail(newUser.email);
-    }
-  }
-
   public async requestAccess(dto: AuthLoginSendRequestDto) {
-    const u = await this.usersService.getByEmail(dto.login);
-    if (u.isPending) {
-      throw new BadRequestException('Request has already been sent!');
-    }
-    if (u.isActive) {
+    const user = await this.usersService.getByEmail(dto.login);
+    if (user.isActive) {
       throw new BadRequestException('User already has access!');
     }
-    // TODO: test code/ remove
-    const recipient = await this.getOrCreateAdminIfNotExist(dto.recipient);
-    // const recipient = await this.usersService.getByEmail(dto.recipient);
-    if (!recipient?.isAdmin) {
+    if (user.hasPendingUserAccessRequest) {
+      throw new BadRequestException('Request has already been sent!');
+    }
+    // TODO: test code | remove | use usersService.getByEmail
+    const recipient = await this.usersService.getOrCreateDefaultByEmail(
+      dto.recipient,
+      { role: EUserRole.ADMIN, isActive: true },
+    );
+    if (!recipient?.isAdmin || !recipient?.isActive) {
       throw new BadRequestException('Invalid recipient');
     }
 
-    await this.usersService.createUserAccessRequest(u._id, recipient._id);
+    await this.usersService.createUserAccessRequest(user.id, recipient.id);
   }
 
   public setAuthResponseCookieToken(

@@ -18,9 +18,15 @@ export class TokenResponseInterceptor<T>
   implements NestInterceptor<T, Response<T>>
 {
   constructor(private readonly authService: AuthService) {}
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<HttpRequest>();
     const response = context.switchToHttp().getResponse<HttpResponse>();
+
+    const excludePaths = ['logout'];
+    if (excludePaths.some((p) => request.url.includes(p))) {
+      return next.handle().pipe(map((data) => data));
+    }
 
     const requestToken =
       (request.cookies &&

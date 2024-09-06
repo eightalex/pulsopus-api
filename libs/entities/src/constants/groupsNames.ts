@@ -1,5 +1,6 @@
 export const USER_GROUP = {
   LIST: 'USER_LIST',
+  LIST_ADMIN: 'USER_LIST_ADMIN',
   AUTH: 'USER_AUTH',
   PROFILE: 'USER_PROFILE',
 };

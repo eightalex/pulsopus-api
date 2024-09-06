@@ -29,4 +29,8 @@ export class ApiController {
     const rd = new StreamableFile(file);
     return rd;
   }
+
+  @UsePublic()
+  @Get('migrate')
+  migrate() {}
 }

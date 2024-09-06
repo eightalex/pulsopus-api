@@ -1,18 +1,9 @@
 import { Transform, Type } from 'class-transformer';
 import { IsArray, IsOptional, IsString } from 'class-validator';
 import { transformArrayFunction } from '@app/dto/helpers/transformFunction.helper';
-import { EUserRole, EUserStatus } from '@app/entities';
+import { EUserRole } from '@app/entities';
 
 export class UsersFilterRequestDto {
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  @Type(() => String)
-  @Transform((params) =>
-    transformArrayFunction(params, Object.keys(EUserStatus)),
-  )
-  status?: EUserStatus[];
-
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
@@ -26,4 +17,12 @@ export class UsersFilterRequestDto {
   @Type(() => String)
   @Transform((params) => transformArrayFunction(params))
   email?: string[];
+
+  @IsOptional()
+  @Type(() => Number)
+  from?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  to?: number;
 }

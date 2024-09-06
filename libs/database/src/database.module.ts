@@ -1,34 +1,23 @@
 import { ConfigModule } from '@app/common';
-import { DatabaseService } from '@app/database/database.service';
-import { Department, DepartmentSchema, User, UserSchema } from '@app/entities';
+import { entities, repositories } from '@app/database/database.entities';
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MigrationModule } from './migration/migration.module';
-import { MongooseConfigService } from './mongoose.config';
+import { DataLoaderModule } from './data-loader/data-loader.module';
 import { TypeOrmConfigService } from './typeorm.config';
 
 @Module({
   imports: [
     ConfigModule,
-    MongooseModule.forRootAsync({
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useClass: MongooseConfigService,
       inject: [ConfigService],
+      useClass: TypeOrmConfigService,
     }),
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: Department.name, schema: DepartmentSchema },
-    ]),
-    // TypeOrmModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useClass: TypeOrmConfigService,
-    // }),
-    forwardRef(() => MigrationModule),
+    TypeOrmModule.forFeature(entities),
+    forwardRef(() => DataLoaderModule),
   ],
-  providers: [DatabaseService],
-  exports: [MongooseModule, DatabaseService],
+  providers: [...repositories],
+  exports: [TypeOrmModule, ...repositories],
 })
 export class DatabaseModule {}

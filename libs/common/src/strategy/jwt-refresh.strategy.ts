@@ -33,7 +33,6 @@ export class JwtRefreshStrategy extends PassportStrategy(
   public validate(req: Request, payload: any): { refreshToken?: string } {
     const refreshToken =
       payload || req.get('Authorization').replace('Bearer', '').trim();
-    console.log('refreshToken', refreshToken);
     return { ...payload, refreshToken };
   }
 }
