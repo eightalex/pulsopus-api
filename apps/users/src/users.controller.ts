@@ -53,12 +53,12 @@ export class UsersController {
     return { users };
   }
 
-  @Get(':id')
+  @Get(':id/activity')
   @SerializeOptions({ groups: [USER_GROUP.PROFILE] })
   public async getById(
     @Param() params: { id: User['id'] },
   ): Promise<{ user: User }> {
-    const user = { id: params.id } as User;
+    const user = await this.usersService.getByIdWithActivity(params.id);
     return { user };
   }
 

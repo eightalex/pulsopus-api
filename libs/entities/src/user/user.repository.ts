@@ -14,6 +14,15 @@ export class UserRepository extends Repository<User> {
     return this.query('DELETE FROM users WHERE id in (SELECT id FROM users)');
   }
 
+  public async findByIdWithActivity(id: User['id']): Promise<User> {
+    return this.findOne({
+      where: {
+        id,
+      },
+      relations: ['activities'],
+    });
+  }
+
   public async findByActive(selection: UserFindSelectionDto): Promise<User[]> {
     return this.createQueryBuilder('u')
       .leftJoinAndSelect(

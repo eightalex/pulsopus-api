@@ -58,6 +58,10 @@ export class UsersService {
     return user;
   }
 
+  public async getByIdWithActivity(id: User['id']): Promise<User> {
+    return this.userRepository.findByIdWithActivity(id);
+  }
+
   public async getByEmail(email: User['email']): Promise<User> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
