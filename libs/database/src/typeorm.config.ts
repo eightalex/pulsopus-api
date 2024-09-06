@@ -13,6 +13,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     | TypeOrmModuleOptions {
     const db = this.config.get('db.pg');
     const isDev = this.config.get<boolean>('IS_DEV');
+    const ca = isDev ? '' : fs.readFileSync(db.ca).toString();
     return {
       type: 'postgres',
       host: db.host,
@@ -25,14 +26,13 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       retryDelay: 5000,
       autoLoadEntities: true,
       entities,
-      ssl: !isDev,
-      // ssl: isDev
-      //   ? false
-      //   : {
-      //       rejectUnauthorized: false,
-      //       ca: fs.readFileSync('cert/ca-certificate.crt').toString(),
-      //     },
-      // logging: ['query', 'error'],
+      ssl: Boolean(isDev || !ca)
+        ? false
+        : {
+            rejectUnauthorized: true,
+            ca,
+          },
+      logging: isDev ? false : ['query', 'error'],
     };
   }
 }

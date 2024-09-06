@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { IsNumber, IsString, validateSync } from 'class-validator';
+import { IsNumber, IsOptional, IsString, validateSync } from 'class-validator';
 
 class EnvironmentVariables {
   @IsString()
@@ -47,6 +47,9 @@ class EnvironmentVariables {
   POSTGRES_PORT: number;
   @IsString()
   POSTGRES_DB: string;
+  @IsOptional()
+  @IsString()
+  POSTGRES_CA_CERT: string;
 
   @IsString()
   CLIENT_URL: string;
@@ -104,6 +107,7 @@ export default (): Record<string, unknown> => ({
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       name: process.env.POSTGRES_DB,
+      ca: process.env.POSTGRES_CA_CERT,
     },
   },
   secret: {
