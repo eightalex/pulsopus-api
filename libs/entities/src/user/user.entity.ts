@@ -100,13 +100,13 @@ export class User extends UuidTimestampEntity {
   }
 
   @ApiProperty({ type: () => Number })
-  @Expose({ groups: [USER_GROUP.LIST] })
+  @Expose()
   public get createdAt(): number {
     return moment(this.created_at).valueOf();
   }
 
   @ApiProperty({ type: () => Number })
-  @Expose({ groups: [USER_GROUP.LIST] })
+  @Expose()
   public get updatedAt(): number {
     return moment(this.updated_at).valueOf();
   }

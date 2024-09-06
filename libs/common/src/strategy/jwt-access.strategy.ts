@@ -5,17 +5,13 @@ import { TokenPayload } from '@app/entities';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { AuthService } from '@/auth/src/auth.service';
 
 @Injectable()
 export class JwtAccessStrategy extends PassportStrategy(
   Strategy,
   AUTH_JWT_ACCESS_TYPE,
 ) {
-  constructor(
-    private readonly config: ConfigService,
-    private readonly authService: AuthService,
-  ) {
+  constructor(private readonly config: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         JwtAccessStrategy.extractCookieJWT,
@@ -36,16 +32,13 @@ export class JwtAccessStrategy extends PassportStrategy(
 
   public async validate(payload: TokenPayload): Promise<TokenPayload> {
     try {
-      const tokenPayload = await this.authService.updateTokenPayloadByUserId(
-        payload.sub,
-      );
-      if (!tokenPayload) {
+      if (!payload) {
         throw new Error('Unexpected exception. No token payload!');
       }
-      if (!tokenPayload.isActive) {
+      if (!payload.isActive) {
         throw new Error('Invalid user!');
       }
-      return tokenPayload;
+      return payload;
     } catch (err) {
       throw new UnauthorizedException(`Unauthorized. ${err.message}`);
     }
