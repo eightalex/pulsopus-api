@@ -124,8 +124,9 @@ export class UsersController {
     @UserAuthorization() token: string,
     @Req() req: Request,
   ): Promise<{ link: string }> {
+    const isDev = this.config.get<boolean>('IS_DEV');
     const t = await this.authService.rebuildToken(token);
-    const protocol = req.protocol === 'https' ? 'wss' : 'ws';
+    const protocol = Boolean(isDev || !req.secure) ? 'ws' : 'wss';
     const host = req.get('Host');
     const link = `${protocol}://${host}/api/v1/users?token=${t}`;
     return { link };
