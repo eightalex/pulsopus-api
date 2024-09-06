@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
@@ -11,6 +12,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     | Promise<TypeOrmModuleOptions>
     | TypeOrmModuleOptions {
     const db = this.config.get('db.pg');
+    const isDev = this.config.get<boolean>('IS_DEV');
     return {
       type: 'postgres',
       host: db.host,
@@ -23,6 +25,12 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       retryDelay: 5000,
       autoLoadEntities: true,
       entities,
+      ssl: isDev
+        ? false
+        : {
+            rejectUnauthorized: false,
+            ca: fs.readFileSync('cert/ca-certificate.crt').toString(),
+          },
       // logging: ['query', 'error'],
     };
   }

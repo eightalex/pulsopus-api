@@ -52,17 +52,6 @@ class EnvironmentVariables {
   POSTGRES_DB: string;
 
   @IsString()
-  DB_HOST: string;
-  @IsString()
-  DB_USERNAME: string;
-  @IsString()
-  DB_PASSWORD: string;
-  @IsNumber()
-  DB_PORT: number;
-  @IsString()
-  DB_NAME: string;
-
-  @IsString()
   CLIENT_URL: string;
   @IsString()
   APP_URL: string;
