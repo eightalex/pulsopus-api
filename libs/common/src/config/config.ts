@@ -38,9 +38,6 @@ class EnvironmentVariables {
   JWT_SECRET_REFRESH_EXPIRE: string;
 
   @IsString()
-  MONGODB_URI: string;
-
-  @IsString()
   POSTGRES_HOST: string;
   @IsString()
   POSTGRES_USER: string;
@@ -101,9 +98,6 @@ export default (): Record<string, unknown> => ({
     departments: process.env.HOST_DEPARTMENTS || 'departments',
   },
   db: {
-    mongo: {
-      uri: process.env.MONGODB_URI,
-    },
     pg: {
       host: process.env.POSTGRES_HOST,
       port: parseInt(process.env.POSTGRES_PORT, 10) || 5432,
