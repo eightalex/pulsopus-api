@@ -54,7 +54,6 @@ export class UsersController {
   }
 
   @Get(':id/activity')
-  @SerializeOptions({ groups: [USER_GROUP.PROFILE] })
   public async getById(
     @Param() params: { id: User['id'] },
   ): Promise<{ user: User }> {
