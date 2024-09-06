@@ -23,8 +23,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthService } from '@/auth/src/auth.service';
-import { UsersGateway } from '@/users/src/users.gateway';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
@@ -34,8 +32,6 @@ export class UsersController {
   constructor(
     private readonly config: ConfigService,
     private readonly usersService: UsersService,
-    private readonly usersGateway: UsersGateway,
-    private readonly authService: AuthService,
   ) {}
 
   @SerializeOptions({ groups: [USER_GROUP.PROFILE] })
@@ -73,12 +69,11 @@ export class UsersController {
     @Body() body: UsersUpdateBodyRequestDto,
     @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<{ user: User }> {
-    const user = await this.usersService.updateUserById(params.id, body);
-    this.usersGateway.sendEventUpdateUser({
-      userId: params.id,
-      requesterUserId: tokenPayload.sub,
-      updatedParams: body,
-    });
+    const user = await this.usersService.updateUserById(
+      params.id,
+      body,
+      tokenPayload,
+    );
     return { user };
   }
 
@@ -90,12 +85,6 @@ export class UsersController {
     @UserTokenPayload() tokenPayload: TokenPayload,
   ): Promise<void> {
     await this.usersService.deleteUsers(params, tokenPayload);
-    params.ids.forEach((userId) => {
-      this.usersGateway.sendEventDeleteUser({
-        userId,
-        requesterUserId: tokenPayload.sub,
-      });
-    });
   }
 
   @Post(':id/access/approve')
@@ -125,7 +114,8 @@ export class UsersController {
     @Req() req: Request,
   ): Promise<{ link: string }> {
     const isDev = this.config.get<boolean>('IS_DEV');
-    const t = await this.authService.rebuildToken(token);
+    // const t = await this.authService.rebuildToken(token);
+    const t = '';
     const protocol = isDev ? 'ws' : 'wss';
     const host = req.get('Host');
     const link = `${protocol}://${host}/api/v1/users?token=${t}`;

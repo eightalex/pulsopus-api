@@ -1,5 +1,6 @@
 import { ConfigModule } from '@app/common';
 import { entities, repositories } from '@app/database/database.entities';
+import { DatabaseService } from '@app/database/database.service';
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,7 +18,7 @@ import { TypeOrmConfigService } from './typeorm.config';
     TypeOrmModule.forFeature(entities),
     forwardRef(() => DataLoaderModule),
   ],
-  providers: [...repositories],
-  exports: [TypeOrmModule, ...repositories],
+  providers: [DatabaseService, ...repositories],
+  exports: [DatabaseService, TypeOrmModule, ...repositories],
 })
 export class DatabaseModule {}

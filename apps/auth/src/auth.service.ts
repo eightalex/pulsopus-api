@@ -32,7 +32,7 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  private getSecret(key: TokenType = 'access'): {
+  public getSecret(key: TokenType = 'access'): {
     key: string;
     expire: string;
   } {
@@ -47,7 +47,8 @@ export class AuthService {
     }
     return secret;
   }
-  private async signToken(
+
+  public async signToken(
     user: User,
     type: TokenType = 'access',
   ): Promise<string> {

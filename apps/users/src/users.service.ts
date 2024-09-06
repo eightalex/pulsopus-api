@@ -22,6 +22,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { UsersGateway } from '@/users/src/users.gateway';
 
 @Injectable()
 export class UsersService {
@@ -32,6 +33,7 @@ export class UsersService {
     private readonly userAccessRequestRepository: UserAccessRequestRepository,
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
+    private readonly usersGateway: UsersGateway,
   ) {}
 
   private get clientUrl(): string {
@@ -125,6 +127,7 @@ export class UsersService {
   public async updateUserById(
     id: User['id'],
     dto: UsersUpdateBodyRequestDto,
+    tokenPayload: TokenPayload,
   ): Promise<User> {
     await this.userRepository.update(
       {
@@ -134,6 +137,11 @@ export class UsersService {
         ...dto,
       },
     );
+    this.usersGateway.sendEventUpdateUser({
+      userId: id,
+      requesterUserId: tokenPayload.sub,
+      updatedParams: dto,
+    });
     return this.getById(id);
   }
 
@@ -148,6 +156,13 @@ export class UsersService {
     await this.userRepository.delete({
       id: In(params.ids),
     });
+
+    for (const id of params.ids) {
+      this.usersGateway.sendEventDeleteUser({
+        userId: id,
+        requesterUserId: tokePayload.sub,
+      });
+    }
   }
 
   public async createUserAccessRequest(
@@ -164,6 +179,11 @@ export class UsersService {
           requestedUser,
         }),
       );
+
+      this.usersGateway.sendEventUpdateUser({
+        userId: requester.id,
+        requesterUserId: requestedUser.id,
+      });
 
       await this.mailerService.sendAccessRequestForAdmin({
         to: requestedUser.email,
@@ -199,6 +219,11 @@ export class UsersService {
       await this.userAccessRequestRepository.approveById(request.id);
     }
 
+    this.usersGateway.sendEventUpdateUser({
+      userId: id,
+      requesterUserId: tokenPayload.sub,
+    });
+
     return this.userRepository.activateUserById(id);
   }
 
@@ -215,6 +240,11 @@ export class UsersService {
     for (const request of requests) {
       await this.userAccessRequestRepository.rejectById(request.id);
     }
+
+    this.usersGateway.sendEventUpdateUser({
+      userId: id,
+      requesterUserId: tokenPayload.sub,
+    });
 
     return this.getById(id);
   }

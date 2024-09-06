@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { EUserRole, User } from '@app/entities';
-import { ForbiddenException, Logger } from '@nestjs/common';
+import { ForbiddenException, Inject, Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
   ConnectedSocket,
   MessageBody,
@@ -11,6 +12,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { AuthService } from '@/auth/src/auth.service';
+import { UsersService } from '@/users/src/users.service';
 import { EUsersGatewayEvent } from './constants';
 
 // TODO: add gateway global prefix and versions | or get from .env
@@ -35,7 +37,7 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // TODO: add use redis
   private readonly userAssociateMap: Map<Socket['id'], User['id']> = new Map();
 
-  constructor(private readonly authService: AuthService) {}
+  // constructor(private readonly authService: AuthService) {}
 
   private deleteClient(id: Socket['id']) {
     this.clients.delete(id);
@@ -47,21 +49,21 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const token = client.handshake.query.token;
       const t = Array.isArray(token) ? token[0] : token;
       if (!t) return;
-      const tokenPayload = await this.authService.validateToken(t);
+      // const tokenPayload = await this.authService.validateToken(t);
 
-      const isAvaliable =
-        tokenPayload.isActive && tokenPayload.role === EUserRole.ADMIN;
-
-      if (!isAvaliable) {
-        throw new ForbiddenException('Forbidden');
-      }
-
-      if (!this.clients.has(client.id)) {
-        this.clients.set(client.id, client);
-      }
-      if (!this.userAssociateMap.has(client.id)) {
-        this.userAssociateMap.set(client.id, tokenPayload.sub);
-      }
+      // const isAvaliable =
+      //   tokenPayload.isActive && tokenPayload.role === EUserRole.ADMIN;
+      //
+      // if (!isAvaliable) {
+      //   throw new ForbiddenException('Forbidden');
+      // }
+      //
+      // if (!this.clients.has(client.id)) {
+      //   this.clients.set(client.id, client);
+      // }
+      // if (!this.userAssociateMap.has(client.id)) {
+      //   this.userAssociateMap.set(client.id, tokenPayload.sub);
+      // }
     } catch (err) {
       client.disconnect();
       this.deleteClient(client.id);
