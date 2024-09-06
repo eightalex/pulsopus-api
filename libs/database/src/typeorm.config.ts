@@ -32,7 +32,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
             rejectUnauthorized: true,
             ca,
           },
-      logging: isDev ? false : ['query', 'error'],
+      // logging: isDev ? false : ['query', 'error'],
     };
   }
 }
