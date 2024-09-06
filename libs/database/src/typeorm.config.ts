@@ -25,12 +25,13 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       retryDelay: 5000,
       autoLoadEntities: true,
       entities,
-      ssl: isDev
-        ? false
-        : {
-            rejectUnauthorized: false,
-            ca: fs.readFileSync('cert/ca-certificate.crt').toString(),
-          },
+      ssl: !isDev,
+      // ssl: isDev
+      //   ? false
+      //   : {
+      //       rejectUnauthorized: false,
+      //       ca: fs.readFileSync('cert/ca-certificate.crt').toString(),
+      //     },
       // logging: ['query', 'error'],
     };
   }
