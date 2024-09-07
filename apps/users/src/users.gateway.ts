@@ -89,7 +89,7 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public sendEventUpdateUser(params: {
     userId: User['id'];
     requesterUserId?: User['id'];
-    updatedParams?: Partial<User>;
+    updatedParams?: object;
   }) {
     const { userId = '', requesterUserId = '', updatedParams = {} } = params;
     const message = {
