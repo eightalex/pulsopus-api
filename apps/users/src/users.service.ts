@@ -208,6 +208,7 @@ export class UsersService {
   ): Promise<User> {
     const { sub } = tokenPayload;
     const admin = await this.getById(sub);
+    const requester = await this.getById(id);
 
     if (!admin.isActive || !admin.isAdmin) {
       throw new ForbiddenException('No permission');
@@ -228,6 +229,12 @@ export class UsersService {
       requesterUserId: tokenPayload.sub,
     });
 
+    await this.mailerService.sendUserAccessApproved({
+      to: requester.email,
+      userName: requester.username,
+      loginLink: this.clientUrl,
+    });
+
     return this.userRepository.activateUserById(id);
   }
 
@@ -235,6 +242,7 @@ export class UsersService {
     id: User['id'],
     tokenPayload: TokenPayload,
   ): Promise<User> {
+    const requester = await this.getById(id);
     const requests =
       await this.userAccessRequestRepository.findByPendingAndRequesterIdAndRequestedUserId(
         id,
@@ -248,6 +256,11 @@ export class UsersService {
     this.usersGateway.sendEventUpdateUser({
       userId: id,
       requesterUserId: tokenPayload.sub,
+    });
+
+    await this.mailerService.sendUserAccessRejected({
+      to: requester.email,
+      userName: requester.username,
     });
 
     return this.getById(id);
