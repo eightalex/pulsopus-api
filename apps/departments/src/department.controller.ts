@@ -16,7 +16,7 @@ export class DepartmentController {
   }
 
   @UsePublic()
-  @Get('fill')
+  @Get('compute')
   public async computeDepartmentData(): Promise<void> {
     await this.departmentService.computedDepartments();
   }

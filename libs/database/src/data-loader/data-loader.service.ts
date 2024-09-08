@@ -30,7 +30,8 @@ export class DataLoaderService {
   }
 
   private async insertUsersAndActivity() {
-    const readedUserInstances = await new CsvUserData().getParsedCsvData();
+    const readedUserInstances =
+      await new CsvUserData().getParsedCsvDataWithRename();
     const usersForCreate = [
       ...new Map(
         [...readedUserInstances, ...presetsUsers].map((u) => [u['email'], u]),
