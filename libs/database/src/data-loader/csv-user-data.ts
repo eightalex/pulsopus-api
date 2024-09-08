@@ -49,6 +49,13 @@ export const presetsUsers: IParseCsvDataReturn[] = [
 });
 
 export class CsvUserData {
+  static createEmailFromName(name: string, adds: string[] = []): string {
+    const split = name.split(' ').map((s) => s.toLowerCase());
+    adds.forEach((s) => {
+      split.push(s);
+    });
+    return split.join('.').concat('@pulsopus.dev');
+  }
   private rowParser(row): IReaded {
     const result = {
       data: {},
@@ -61,9 +68,8 @@ export class CsvUserData {
         result[k] = v;
         continue;
       }
-      if (v.length) {
-        result.data[k] = v;
-      }
+
+      result.data[k] = v.length ? v : '0';
     }
     return result;
   }
@@ -89,14 +95,10 @@ export class CsvUserData {
     const department = departmentsValuesMap.get(
       r.department.replace('department', '').trim(),
     );
-    const email = r.name
-      .split(' ')
-      .map((s) => s.toLowerCase())
-      .join('.')
-      .concat('@pulsopus.dev');
+
+    const email = CsvUserData.createEmailFromName(r.name);
 
     const parseDateFormat = 'YYYY-MM-DD';
-
     return {
       role: EUserRole.VIEWER,
       username: r.name,
@@ -107,7 +109,7 @@ export class CsvUserData {
       position: r.position,
       activity: Object.entries(r.data).reduce(
         (acc, [date, value]) => {
-          const d = moment(date, parseDateFormat).startOf('d');
+          const d = moment(date, parseDateFormat, true).startOf('d').utc();
           if (!d.isValid()) return acc;
 
           acc[d.valueOf()] = /\d/.test(value)
@@ -124,5 +126,22 @@ export class CsvUserData {
   public async getParsedCsvData(): Promise<IParseCsvDataReturn[]> {
     const data = await this.readDataFile();
     return data.map(this.parseData);
+  }
+
+  public async getParsedCsvDataWithRename(): Promise<IParseCsvDataReturn[]> {
+    const parseData = await this.getParsedCsvData();
+    const renamedDataMap = parseData.reduce((map, d, idx) => {
+      const data = !map.has(d.email)
+        ? d
+        : {
+            ...d,
+            username: `${d.username} ${idx}`,
+            email: CsvUserData.createEmailFromName(d.username, [`${idx}`]),
+          };
+
+      map.set(data.email, data);
+      return map;
+    }, new Map<string, IParseCsvDataReturn>());
+    return [...renamedDataMap.values()];
   }
 }
