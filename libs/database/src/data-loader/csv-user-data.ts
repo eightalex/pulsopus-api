@@ -68,9 +68,8 @@ export class CsvUserData {
         result[k] = v;
         continue;
       }
-      if (v.length) {
-        result.data[k] = v;
-      }
+
+      result.data[k] = v.length ? v : '0';
     }
     return result;
   }
@@ -110,7 +109,7 @@ export class CsvUserData {
       position: r.position,
       activity: Object.entries(r.data).reduce(
         (acc, [date, value]) => {
-          const d = moment(date, parseDateFormat).startOf('d');
+          const d = moment(date, parseDateFormat, true).startOf('d').utc();
           if (!d.isValid()) return acc;
 
           acc[d.valueOf()] = /\d/.test(value)

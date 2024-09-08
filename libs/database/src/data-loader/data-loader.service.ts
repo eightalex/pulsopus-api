@@ -16,6 +16,7 @@ export class DataLoaderService {
     private readonly userActivityRepository: UserActivityRepository,
     private readonly userAccessRequestRepository: UserAccessRequestRepository,
   ) {
+    new CsvUserData().getParsedCsvData();
     this.initial();
   }
 
