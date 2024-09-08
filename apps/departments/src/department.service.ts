@@ -1,36 +1,28 @@
-import {
-  Department,
-  EDepartment,
-  User,
-  UserActivityRepository,
-  UserRepository,
-} from '@app/entities';
+import { Department, EDepartment, User, UserRepository } from '@app/entities';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class DepartmentService {
   private readonly departments: Map<string, Department> = new Map();
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly userActivityRepository: UserActivityRepository,
-  ) {
+  constructor(private readonly userRepository: UserRepository) {
     this.computedDepartments();
   }
 
   private async computedDepartments() {
-    const activities = await this.userActivityRepository.find({
-      select: ['value', 'date'],
-    });
+    const key = 'compute_departments_data';
+    console.time(key);
     const users = await this.userRepository.find({
       relations: ['activities'],
     });
 
-    const absoluteDateActivities = activities.reduce((acc, act) => {
-      const d = Number(act.date);
-      const v = Number(act.value);
-      const abs = acc.get(d) || 0;
-      acc.set(d, abs + v);
-      return acc;
+    const absoluteDateActivities = users.reduce((map, u) => {
+      for (const act of u.activities || []) {
+        const d = Number(act.date);
+        const v = Number(act.value);
+        const prev = map.get(d) || 0;
+        map.set(d, prev + v);
+      }
+      return map;
     }, new Map<number, number>());
 
     const departments = users
@@ -86,6 +78,7 @@ export class DepartmentService {
       },
       [] as Department[],
     );
+    console.timeEnd(key);
     return departmentList;
   }
 
