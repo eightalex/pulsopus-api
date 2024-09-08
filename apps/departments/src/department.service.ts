@@ -8,7 +8,7 @@ export class DepartmentService {
     this.computedDepartments();
   }
 
-  private async computedDepartments() {
+  public async computedDepartments() {
     const key = 'compute_departments_data';
     console.time(key);
     const users = await this.userRepository.find({

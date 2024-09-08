@@ -9,10 +9,15 @@ import { DepartmentService } from './department.service';
 export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService) {}
 
-  @UsePublic()
   @Get()
   public async getAll(): Promise<{ departments: Department[] }> {
     const departments = await this.departmentService.findAll();
     return { departments };
+  }
+
+  @UsePublic()
+  @Get('fill')
+  public async computeDepartmentData(): Promise<void> {
+    await this.departmentService.computedDepartments();
   }
 }

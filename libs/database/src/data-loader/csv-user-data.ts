@@ -107,12 +107,13 @@ export class CsvUserData {
       position: r.position,
       activity: Object.entries(r.data).reduce(
         (acc, [date, value]) => {
-          const isNum = /\d/.test(value);
-          if (!isNum) return acc;
           const d = moment(date, parseDateFormat).startOf('d');
           if (!d.isValid()) return acc;
-          const v = value.replace(/,/gm, '');
-          acc[d.valueOf()] = Number(v);
+
+          acc[d.valueOf()] = /\d/.test(value)
+            ? Number(value.replace(/,/gm, ''))
+            : 0;
+
           return acc;
         },
         {} as Record<number, number>,
