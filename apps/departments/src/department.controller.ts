@@ -2,8 +2,10 @@ import { UsePublic } from '@app/common';
 import { USER_GROUP } from '@app/entities';
 import { Department } from '@app/entities/department/department.entity';
 import { Controller, Get, SerializeOptions } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { DepartmentService } from './department.service';
 
+@ApiTags('departments')
 @Controller('departments')
 @SerializeOptions({ groups: [USER_GROUP.LIST] })
 export class DepartmentController {
@@ -17,7 +19,7 @@ export class DepartmentController {
 
   @UsePublic()
   @Get('compute')
-  public async computeDepartmentData(): Promise<void> {
-    await this.departmentService.computedDepartments();
+  public async computeDepartmentData() {
+    return this.departmentService.computedDepartments();
   }
 }
