@@ -83,6 +83,9 @@ export class DepartmentService {
   }
 
   public async findAll(): Promise<Department[]> {
+    if (!this.departments.size) {
+      await this.computedDepartments();
+    }
     return [...this.departments.values()];
   }
 }
