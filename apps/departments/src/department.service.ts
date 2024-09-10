@@ -3,12 +3,11 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class DepartmentService {
+  private lastUpdateTime: number = 0;
   private readonly departments: Map<string, Department> = new Map();
-  constructor(private readonly userRepository: UserRepository) {
-    this.computedDepartments();
-  }
+  constructor(private readonly userRepository: UserRepository) {}
 
-  public async computedDepartments() {
+  private async computedDepartments() {
     const key = 'compute_departments_data';
     console.time(key);
     const users = await this.userRepository.find({
@@ -82,10 +81,17 @@ export class DepartmentService {
     return departmentList;
   }
 
+  private async updateData() {
+    const currentTime = new Date().getTime();
+    const shouldUpdate =
+      !this.departments.size || currentTime - this.lastUpdateTime >= 600000;
+    if (!shouldUpdate) return;
+    this.lastUpdateTime = new Date().getTime();
+    await this.computedDepartments();
+  }
+
   public async findAll(): Promise<Department[]> {
-    if (!this.departments.size) {
-      await this.computedDepartments();
-    }
+    await this.updateData();
     return [...this.departments.values()];
   }
 }

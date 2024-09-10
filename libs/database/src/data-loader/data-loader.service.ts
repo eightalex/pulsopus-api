@@ -22,7 +22,7 @@ export class DataLoaderService {
   private log(txt: string = '') {
     this.logger.log(`[DATA LOAD]: ${txt}`);
   }
-  private async dropRecords() {
+  public async dropRecords() {
     await this.userRepository.deleteAllRecords();
     await this.userActivityRepository.deleteAllRecords();
     await this.userAccessRequestRepository.deleteAllRecords();
@@ -73,9 +73,9 @@ export class DataLoaderService {
     }
   }
 
-  private async initial() {
+  public async initial(force?: boolean) {
     const count = await this.userRepository.count();
-    if (Boolean(count)) return;
+    if (Boolean(count) && !force) return;
 
     const key = 'load_data_initial';
     console.time(key);

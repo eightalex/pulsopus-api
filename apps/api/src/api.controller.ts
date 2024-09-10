@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { createReadStream } from 'fs';
 import { UsePublic } from '@app/common';
+import { DatabaseService } from '@app/database/database.service';
 import * as csv from '@fast-csv/parse';
 import { Controller, Get, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,12 +10,20 @@ import { ApiService } from './api.service';
 @ApiTags('api')
 @Controller()
 export class ApiController {
-  constructor(private readonly apiService: ApiService) {}
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly databaseService: DatabaseService,
+  ) {}
 
   @UsePublic()
   @Get()
   public async index(): Promise<string> {
     return this.apiService.getIndex();
+  }
+  @UsePublic()
+  @Get('restart')
+  public async restart(): Promise<void> {
+    await this.databaseService.reset();
   }
 
   @UsePublic()
