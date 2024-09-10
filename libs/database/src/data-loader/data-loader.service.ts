@@ -73,9 +73,9 @@ export class DataLoaderService {
     }
   }
 
-  public async initial(force?: boolean) {
+  private async initial() {
     const count = await this.userRepository.count();
-    if (Boolean(count) && !force) return;
+    if (Boolean(count)) return;
 
     const key = 'load_data_initial';
     console.time(key);
@@ -88,5 +88,28 @@ export class DataLoaderService {
 
     this.log('initial end');
     console.timeEnd(key);
+  }
+
+  public async restart(): Promise<{
+    users: number;
+    activities: number;
+  }> {
+    const key = 'load_data_restart';
+    console.time(key);
+    this.log('restart start');
+    this.logger.log('[LOAD DATA]: ');
+
+    await this.dropRecords();
+    await this.insertUsersAndActivity();
+
+    const users = await this.userRepository.count();
+    const activities = await this.userActivityRepository.count();
+
+    this.log('restart end');
+    console.timeEnd(key);
+    return {
+      users,
+      activities,
+    };
   }
 }
