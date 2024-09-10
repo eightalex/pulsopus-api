@@ -6,6 +6,6 @@ export class DatabaseService {
   constructor(private readonly dataLoaderService: DataLoaderService) {}
 
   public async reset() {
-    await this.dataLoaderService.initial(true);
+    return this.dataLoaderService.restart();
   }
 }
